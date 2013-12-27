@@ -50,3 +50,5 @@ void loop() {
   
   delay(2000);
 }
+
+// vim:ft=c
