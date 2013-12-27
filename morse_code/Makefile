@@ -20,5 +20,5 @@ INC_DIRS = ./inc
 LIB_DIRS = $(addprefix $(ARD_HOME)/libraries/, $(LIBS))
 LIBS =
 
-include ./Makefile.master
+include ../Makefile.master
 
