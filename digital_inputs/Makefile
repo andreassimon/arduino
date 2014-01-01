@@ -1,5 +1,5 @@
 # Your Arduino environment.
-ARD_REV = 1.0.5
+ARD_REV = 105
 ARD_HOME = $(HOME)/opt/arduino/default
 AVR_HOME = $(ARD_HOME)/hardware/tools/avr
 ARD_BIN = $(AVR_HOME)/bin
