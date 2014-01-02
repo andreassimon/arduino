@@ -165,10 +165,10 @@ ifneq "$(strip $(LIB_C_SRC) $(LIB_CXX_SRC))" ""
 	LIB_LD_FLAG = -l$(LIB_LIB)
 endif
 
-# Sketch PDE source.
-SKT_PDE_SRC = $(wildcard *.pde)
-ifneq "$(strip $(SKT_PDE_SRC))" ""
-	SKT_PDE_OBJ = $(BUILD_DIR)/$(SKETCH)_pde.o
+# Sketch INO source.
+SKT_INO_SRC = $(wildcard *.ino)
+ifneq "$(strip $(SKT_INO_SRC))" ""
+	SKT_INO_OBJ = $(BUILD_DIR)/$(SKETCH)_ino.o
 endif
 
 # C and C++ source.
@@ -215,14 +215,14 @@ clean :
 $(BUILD_DIR) :
 	$(MKDIR) $@
 
-$(SKT_PDE_OBJ) : $(SKT_PDE_SRC)
-	echo '#include <Arduino.h>' > $(BUILD_DIR)/$(SKETCH)_pde.cpp
-	echo '#include "$(SKT_PDE_SRC)"' >> $(BUILD_DIR)/$(SKETCH)_pde.cpp
-	$(LN) $(SKT_PDE_SRC) $(BUILD_DIR)/$(SKT_PDE_SRC)
+$(SKT_INO_OBJ) : $(SKT_INO_SRC)
+	echo '#include <Arduino.h>' > $(BUILD_DIR)/$(SKETCH)_ino.cpp
+	echo '#include "$(SKT_INO_SRC)"' >> $(BUILD_DIR)/$(SKETCH)_ino.cpp
+	$(LN) $(SKT_INO_SRC) $(BUILD_DIR)/$(SKT_INO_SRC)
 	cd $(BUILD_DIR) && $(CXX) -c $(subst build/,,$(CXX_FLAGS)) \
 	    $(OPT_FLAGS) $(ARD_FLAGS) -I.. \
 	    $(patsubst -I..%,-I../..%,$(INC_FLAGS)) \
-	    $(SKETCH)_pde.cpp -o $(@F)
+	    $(SKETCH)_ino.cpp -o $(@F)
 
 (%.o) : $(ARD_SRC_DIR)/%.c
 	$(run-cc)
@@ -242,9 +242,9 @@ $(BUILD_DIR)/%.d : %.c
 $(BUILD_DIR)/%.d : %.cpp
 	$(run-cxx-d)
 
-$(IMAGE).hex : $(ARD_AR_OBJ) $(LIB_AR_OBJ) $(SKT_AR_OBJ) $(SKT_PDE_OBJ)
+$(IMAGE).hex : $(ARD_AR_OBJ) $(LIB_AR_OBJ) $(SKT_AR_OBJ) $(SKT_INO_OBJ)
 	$(CC) $(CXX_FLAGS) $(OPT_FLAGS) $(ARD_FLAGS) -L$(BUILD_DIR) \
-	    $(SKT_PDE_OBJ) $(SKT_LD_FLAG) $(LIB_LD_FLAG) $(ARD_LD_FLAG) -lm \
+	    $(SKT_INO_OBJ) $(SKT_LD_FLAG) $(LIB_LD_FLAG) $(ARD_LD_FLAG) -lm \
 	    -o $(IMAGE).elf
 	$(OBJCOPY) -O ihex -j .eeprom --set-section-flags=.eeprom=alloc,load \
 	    --no-change-warnings --change-section-lma .eeprom=0 $(IMAGE).elf \
