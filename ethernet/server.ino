@@ -42,39 +42,51 @@ void setup() {
   Serial.println(Ethernet.localIP());
 }
 
+String queryParams(String request) {
+  int firstSpace = request.indexOf(' ');
+  String uri = request.substring(firstSpace+1, request.indexOf(' ', firstSpace+1));
+  return uri.substring(uri.indexOf('?')+1);
+}
+
+String red(String request) {
+  String queryParameters = queryParams(request);
+  int indexOfRed = queryParameters.indexOf("r=");
+  int nextAmp = queryParameters.indexOf('&', indexOfRed+1);
+  return queryParameters.substring(indexOfRed, nextAmp);
+}
 
 void loop() {
   // listen for incoming clients
   EthernetClient client = server.available();
   if (client) {
     Serial.println("new client");
+    String request = String("");
     // an http request ends with a blank line
     boolean currentLineIsBlank = true;
     while (client.connected()) {
       if (client.available()) {
         char c = client.read();
-        Serial.write(c);
+        request += c;
         // if you've gotten to the end of the line (received a newline
         // character) and the line is blank, the http request has ended,
         // so you can send a reply
         if (c == '\n' && currentLineIsBlank) {
+          Serial.println(red(request));
+          // Serial.println(green(request));
+          // Serial.println(blue(request));
           // send a standard http response header
           client.println("HTTP/1.1 200 OK");
           client.println("Content-Type: text/html");
           client.println("Connection: close");  // the connection will be closed after completion of the response
-          client.println("Refresh: 5");  // refresh the page automatically every 5 sec
           client.println();
           client.println("<!DOCTYPE HTML>");
           client.println("<html>");
-          // output the value of each analog input pin
-          for (int analogChannel = 0; analogChannel < 6; analogChannel++) {
-            int sensorReading = analogRead(analogChannel);
-            client.print("analog input ");
-            client.print(analogChannel);
-            client.print(" is ");
-            client.print(sensorReading);
-            client.println("<br />");      
-          }
+          client.println("<body>");
+          client.println("<form method=\"GET\">");
+          client.println("<input type=\"text\" name=\"text\">");
+          client.println("<input type=\"submit\" value=\"Senden\">");
+          client.println("</form>");
+          client.println("</body>");
           client.println("</html>");
           break;
         }
