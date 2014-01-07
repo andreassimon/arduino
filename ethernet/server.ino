@@ -42,36 +42,48 @@ void setup() {
   Serial.println(Ethernet.localIP());
 }
 
-String queryParams(String request) {
-  int firstSpace = request.indexOf(' ');
-  String uri = request.substring(firstSpace+1, request.indexOf(' ', firstSpace+1));
+String queryParams(String *request) {
+  int firstSpace = (*request).indexOf(' ');
+  String uri = (*request).substring(firstSpace+1, (*request).indexOf(' ', firstSpace+1));
   return uri.substring(uri.indexOf('?')+1);
 }
 
-String red(String request) {
+String red(String _variableName, String *request) {
+  String variableName = _variableName + "=";
   String queryParameters = queryParams(request);
-  int indexOfRed = queryParameters.indexOf("r=");
+  int indexOfRed = queryParameters.indexOf(variableName);
   int nextAmp = queryParameters.indexOf('&', indexOfRed+1);
   return queryParameters.substring(indexOfRed, nextAmp);
 }
 
+String request;
+int requestLength;
 void loop() {
   // listen for incoming clients
   EthernetClient client = server.available();
   if (client) {
     Serial.println("new client");
-    String request = String("");
+    request = String("");
+    requestLength = 0;
     // an http request ends with a blank line
     boolean currentLineIsBlank = true;
     while (client.connected()) {
-      if (client.available()) {
+      delay(1);
+      if(!client.available()) {
+        break;
+      }
+    /* while (client.connected() && client.available()) { */
         char c = client.read();
+        requestLength++;
         request += c;
+        Serial.write(c);
         // if you've gotten to the end of the line (received a newline
         // character) and the line is blank, the http request has ended,
         // so you can send a reply
         if (c == '\n' && currentLineIsBlank) {
-          Serial.println(red(request));
+          // Serial.println("\n\n\n<RED>");
+          // Serial.println(red("r", &request));
+          // Serial.println("\n\n\n</RED>");
           // Serial.println(green(request));
           // Serial.println(blue(request));
           // send a standard http response header
@@ -82,13 +94,13 @@ void loop() {
           client.println("<!DOCTYPE HTML>");
           client.println("<html>");
           client.println("<body>");
-          client.println("<form method=\"GET\">");
+          client.println("<form action=\"/\" method=\"POST\">");
           client.println("<input type=\"text\" name=\"text\">");
           client.println("<input type=\"submit\" value=\"Senden\">");
           client.println("</form>");
           client.println("</body>");
           client.println("</html>");
-          break;
+          /* break; */
         }
         if (c == '\n') {
           // you're starting a new line
@@ -98,8 +110,13 @@ void loop() {
           // you've gotten a character on the current line
           currentLineIsBlank = false;
         }
-      }
     }
+    delay(10);
+    Serial.println(requestLength);
+    Serial.println("\n\n\n");
+    Serial.println(request.length());
+    Serial.println(request);
+    // free(&request);
     // give the web browser time to receive the data
     delay(1);
     // close the connection:
