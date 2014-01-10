@@ -68,6 +68,10 @@ class Request {
   }
 
   int parseBody(EthernetClient *client) {
+    return parseVariable(client);
+  }
+
+  int parseVariable(EthernetClient *client) {
     token = String();
 
     while ((*client).connected()) {
@@ -76,17 +80,87 @@ class Request {
       }
 
       char c = nextChar(client);
+      if(c == '=') {
+        if(token == "red") {
+          parseRedValue(client);
+        } else if(token == "green") {
+          parseGreenValue(client);
+        } else if(token == "blue") {
+          parseBlueValue(client);
+        }
+        break;
+      }
       token += c;
     }
+    return 0;
+  }
 
-    body = token;
+  int parseRedValue(EthernetClient *client) {
+    token = String();
+
+    while ((*client).connected()) {
+      if(!(*client).available()) {
+        red = token;
+        break;
+      }
+
+      char c = nextChar(client);
+      if(c == '&') {
+        red = token;
+        parseVariable(client);
+        break;
+      }
+      token += c;
+    }
+    return 0;
+  }
+
+  int parseGreenValue(EthernetClient *client) {
+    token = String();
+
+    while ((*client).connected()) {
+      if(!(*client).available()) {
+        green = token;
+        break;
+      }
+
+      char c = nextChar(client);
+      if(c == '&') {
+        green = token;
+        parseVariable(client);
+        break;
+      }
+      token += c;
+    }
+    return 0;
+  }
+
+  int parseBlueValue(EthernetClient *client) {
+    token = String();
+
+    while ((*client).connected()) {
+      if(!(*client).available()) {
+        blue = token;
+        break;
+      }
+
+      char c = nextChar(client);
+      if(c == '&') {
+        blue = token;
+        parseVariable(client);
+        break;
+      }
+      token += c;
+    }
     return 0;
   }
 
   public:
     String method;
     String uri;
-    String body;
+    String red;
+    String green;
+    String blue;
 
     int parse(EthernetClient *client) {
       token = String();
@@ -152,8 +226,12 @@ void loop() {
     Serial.println(request.method);
     Serial.print("URI    >>> ");
     Serial.println(request.uri);
-    Serial.print("BODY   >>> ");
-    Serial.println(request.body);
+    Serial.print("RED    >>> ");
+    Serial.println(request.red);
+    Serial.print("GREEN  >>> ");
+    Serial.println(request.green);
+    Serial.print("BLUE   >>> ");
+    Serial.println(request.blue);
 
     client.println("HTTP/1.1 200 OK");
     client.println("Content-Type: text/html");
