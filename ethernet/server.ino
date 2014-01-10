@@ -41,45 +41,54 @@ String red(String _variableName, String *request) {
 }
 
 class Request {
+  String token;
+
+  char nextChar(EthernetClient *client) {
+    char c = (*client).read();
+    Serial.write(c);
+    return c;
+  }
+
+  int parseURI(EthernetClient *client) {
+    token = String();
+
+    while ((*client).connected()) {
+      if(!(*client).available()) {
+        break;
+      }
+
+      char c = nextChar(client);
+      if(c == ' ') {
+        uri = token;
+        token = String();
+        break;
+      }
+      token += c;
+    }
+
+    return 0;
+  }
+
   public:
     String method;
+    String uri;
 
     int parse(EthernetClient *client) {
-      String token = String();
+      token = String();
 
       while ((*client).connected()) {
         if(!(*client).available()) {
           break;
         }
 
-        char c = (*client).read();
-
+        char c = nextChar(client);
         if(c == ' ') {
           method = token;
+          token = String();
+          parseURI(client);
           break;
         }
         token += c;
-        Serial.write(c);
-        // if you've gotten to the end of the line (received a newline
-        // character) and the line is blank, the http request has ended,
-        // so you can send a reply
-        // if (c == '\n') {
-        // Serial.println("\n\n\n<RED>");
-        // Serial.println(red("r", &request));
-        // Serial.println("\n\n\n</RED>");
-        // Serial.println(green(request));
-        // Serial.println(blue(request));
-        // send a standard http response header
-        /* break; */
-        // }
-        //   if (c == '\n') {
-        //     // you're starting a new line
-        //     currentLineIsBlank = true;
-        //   }
-        //   else if (c != '\r') {
-        //     // you've gotten a character on the current line
-        //     currentLineIsBlank = false;
-        //   }
       }
       return 0;
     }
@@ -99,6 +108,7 @@ void loop() {
     int status = request.parse(&client);
     delay(10);
     Serial.println(request.method);
+    Serial.println(request.uri);
     // Serial.println(request.length());
     // Serial.println(request);
     // free(&request);
