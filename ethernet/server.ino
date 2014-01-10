@@ -146,9 +146,6 @@ void loop() {
     Serial.println(request.method);
     Serial.print("URI    >>> ");
     Serial.println(request.uri);
-    // Serial.println(request.length());
-    // Serial.println(request);
-    // free(&request);
 
     client.println("HTTP/1.1 200 OK");
     client.println("Content-Type: text/html");
@@ -158,7 +155,8 @@ void loop() {
     client.println("<html>");
     client.println("<body>");
     client.println("<form action=\"/\" method=\"POST\">");
-    client.println("<input type=\"text\" name=\"text\">");
+    client.println("<input type=\"text\" name=\"foo\" placeholder=\"foo\">");
+    client.println("<input type=\"text\" name=\"bar\" placeholder=\"bar\">");
     client.println("<input type=\"submit\" value=\"Senden\">");
     client.println("</form>");
     client.println("</body>");
