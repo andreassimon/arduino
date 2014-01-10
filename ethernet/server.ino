@@ -184,7 +184,18 @@ class Request {
 
 
 Request request;
+int redLed = 4;
+int greenLed = 3;
+int blueLed = 2;
+
 void setup() {
+  pinMode(redLed, OUTPUT);
+  pinMode(greenLed, OUTPUT);
+  pinMode(blueLed, OUTPUT);
+
+  digitalWrite(redLed, HIGH);
+  digitalWrite(greenLed, HIGH);
+
   // Open serial communications and wait for port to open:
   Serial.begin(9600);
   while (!Serial) {
@@ -232,6 +243,24 @@ void loop() {
     Serial.println(request.green);
     Serial.print("BLUE   >>> ");
     Serial.println(request.blue);
+
+    if (request.blue == "on") {
+      digitalWrite(blueLed, HIGH);
+    } else {
+      digitalWrite(blueLed, LOW);
+    }
+
+    if (request.red == "on") {
+      digitalWrite(redLed, HIGH);
+    } else {
+      digitalWrite(redLed, LOW);
+    }
+
+    if (request.green == "on") {
+      digitalWrite(greenLed, HIGH);
+    } else {
+      digitalWrite(greenLed, LOW);
+    }
 
     client.println("HTTP/1.1 200 OK");
     client.println("Content-Type: text/html");
