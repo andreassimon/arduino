@@ -60,10 +60,44 @@ class Request {
       char c = nextChar(client);
       if(c == ' ') {
         uri = token;
-        token = String();
+        readRemainingHeaders(client);
         break;
       }
       token += c;
+    }
+
+    return 0;
+  }
+
+  int readRemainingHeaders(EthernetClient *client) {
+    boolean currentLineIsBlank = true;
+
+    while ((*client).connected()) {
+      if(!(*client).available()) {
+        break;
+      }
+
+      char c = nextChar(client);
+      if(c == '\n') {
+        if(currentLineIsBlank) {
+          readRemaining(client);
+        }
+        currentLineIsBlank = true;
+      } else {
+        currentLineIsBlank = false;
+      }
+    }
+
+    return 0;
+  }
+
+  int readRemaining(EthernetClient *client) {
+    while ((*client).connected()) {
+      if(!(*client).available()) {
+        break;
+      }
+
+      nextChar(client);
     }
 
     return 0;
@@ -84,7 +118,6 @@ class Request {
         char c = nextChar(client);
         if(c == ' ') {
           method = token;
-          token = String();
           parseURI(client);
           break;
         }
@@ -107,7 +140,11 @@ void loop() {
     Request request = Request();
     int status = request.parse(&client);
     delay(10);
+    Serial.println();
+    Serial.println();
+    Serial.print("METHOD >>> ");
     Serial.println(request.method);
+    Serial.print("URI    >>> ");
     Serial.println(request.uri);
     // Serial.println(request.length());
     // Serial.println(request);
