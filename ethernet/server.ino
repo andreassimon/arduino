@@ -1,19 +1,3 @@
-/*
-   Web Server
-
-   A simple web server that shows the value of the analog input pins.
-   using an Arduino Wiznet Ethernet shield.
-
-   Circuit:
-    * Ethernet shield attached to pins 10, 11, 12, 13
-    * Analog inputs attached to pins A0 through A5 (optional)
-
-   created 18 Dec 2009
-   by David A. Mellis
-   modified 9 Apr 2012
-   by Tom Igoe
-*/
-
 #include <SPI.h>
 #include <Ethernet.h>
 
@@ -56,6 +40,51 @@ String red(String _variableName, String *request) {
   return queryParameters.substring(indexOfRed, nextAmp);
 }
 
+class Request {
+  public:
+    String method;
+
+    int parse(EthernetClient *client) {
+      String token = String();
+
+      while ((*client).connected()) {
+        if(!(*client).available()) {
+          break;
+        }
+
+        char c = (*client).read();
+
+        if(c == ' ') {
+          method = token;
+          break;
+        }
+        token += c;
+        Serial.write(c);
+        // if you've gotten to the end of the line (received a newline
+        // character) and the line is blank, the http request has ended,
+        // so you can send a reply
+        // if (c == '\n') {
+        // Serial.println("\n\n\n<RED>");
+        // Serial.println(red("r", &request));
+        // Serial.println("\n\n\n</RED>");
+        // Serial.println(green(request));
+        // Serial.println(blue(request));
+        // send a standard http response header
+        /* break; */
+        // }
+        //   if (c == '\n') {
+        //     // you're starting a new line
+        //     currentLineIsBlank = true;
+        //   }
+        //   else if (c != '\r') {
+        //     // you've gotten a character on the current line
+        //     currentLineIsBlank = false;
+        //   }
+      }
+      return 0;
+    }
+};
+
 String request;
 int requestLength;
 void loop() {
@@ -64,59 +93,30 @@ void loop() {
   if (client) {
     Serial.println("new client");
     request = String("");
-    requestLength = 0;
     // an http request ends with a blank line
     boolean currentLineIsBlank = true;
-    while (client.connected()) {
-      delay(1);
-      if(!client.available()) {
-        break;
-      }
-    /* while (client.connected() && client.available()) { */
-        char c = client.read();
-        requestLength++;
-        request += c;
-        Serial.write(c);
-        // if you've gotten to the end of the line (received a newline
-        // character) and the line is blank, the http request has ended,
-        // so you can send a reply
-        if (c == '\n' && currentLineIsBlank) {
-          // Serial.println("\n\n\n<RED>");
-          // Serial.println(red("r", &request));
-          // Serial.println("\n\n\n</RED>");
-          // Serial.println(green(request));
-          // Serial.println(blue(request));
-          // send a standard http response header
-          client.println("HTTP/1.1 200 OK");
-          client.println("Content-Type: text/html");
-          client.println("Connection: close");  // the connection will be closed after completion of the response
-          client.println();
-          client.println("<!DOCTYPE HTML>");
-          client.println("<html>");
-          client.println("<body>");
-          client.println("<form action=\"/\" method=\"POST\">");
-          client.println("<input type=\"text\" name=\"text\">");
-          client.println("<input type=\"submit\" value=\"Senden\">");
-          client.println("</form>");
-          client.println("</body>");
-          client.println("</html>");
-          /* break; */
-        }
-        if (c == '\n') {
-          // you're starting a new line
-          currentLineIsBlank = true;
-        }
-        else if (c != '\r') {
-          // you've gotten a character on the current line
-          currentLineIsBlank = false;
-        }
-    }
+    Request request = Request();
+    int status = request.parse(&client);
     delay(10);
-    Serial.println(requestLength);
-    Serial.println("\n\n\n");
-    Serial.println(request.length());
-    Serial.println(request);
+    Serial.println(request.method);
+    // Serial.println(request.length());
+    // Serial.println(request);
     // free(&request);
+
+    client.println("HTTP/1.1 200 OK");
+    client.println("Content-Type: text/html");
+    client.println("Connection: close");  // the connection will be closed after completion of the response
+    client.println();
+    client.println("<!DOCTYPE HTML>");
+    client.println("<html>");
+    client.println("<body>");
+    client.println("<form action=\"/\" method=\"POST\">");
+    client.println("<input type=\"text\" name=\"text\">");
+    client.println("<input type=\"submit\" value=\"Senden\">");
+    client.println("</form>");
+    client.println("</body>");
+    client.println("</html>");
+
     // give the web browser time to receive the data
     delay(1);
     // close the connection:
@@ -125,4 +125,4 @@ void loop() {
   }
 }
 
-// vim:ft=c
+// vim:ft=cpp
