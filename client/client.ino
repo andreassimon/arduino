@@ -42,11 +42,11 @@ void setup() {
   }
 }
 
+char c;
 void parseKey(EthernetClient *client);
 
 void parseList(EthernetClient *client) {
   Serial.write('[');
-  char c;
 
   while((*client).available()) {
     c = (*client).read();
@@ -67,7 +67,6 @@ void parseList(EthernetClient *client) {
 
 void parseObject(EthernetClient *client) {
   Serial.write('{');
-  char c;
 
   while((*client).available()) {
     c = (*client).read();
@@ -82,57 +81,67 @@ void parseObject(EthernetClient *client) {
   }
 }
 
+/* void parseString(EthernetClient *client) { */
+/*   String value; */
+
+/*   while((*client).available()) { */
+/*     c = (*client).read(); */
+/*     if(c == '"') { */
+/*       (*client).read(); // skip ',' */
+/*       (*client).read(); // skip '"' */
+/*       Serial.println(value); */
+/*       parseKey(client); */
+/*       break; */
+/*     } */
+/*     value += c; */
+/*   } */
+/* } */
+
 void parseString(EthernetClient *client) {
-  String value;
-  char c;
 
   while((*client).available()) {
     c = (*client).read();
     if(c == '"') {
       (*client).read(); // skip ','
       (*client).read(); // skip '"'
-      Serial.println(value);
+      Serial.println();
       parseKey(client);
       break;
     }
-    value += c;
+    Serial.write(c);
   }
 }
 
 void parseLiteral(EthernetClient *client, char openingChar) {
-  String value;
-  value += openingChar;
-  char c;
+  Serial.write(openingChar);
 
   while((*client).available()) {
     c = (*client).read();
     if(c == ',') {
       (*client).read(); // skip '"'
-      Serial.println(value);
+      Serial.println();
       parseKey(client);
       break;
     }
-    value += c;
+    Serial.write(c);
   }
 }
 
 void parseValue(EthernetClient *client) {
-  char closingChar;
-  char openingChar = (*client).read();
-  if(openingChar == '[') {
+  c = (*client).read();
+  if(c == '[') {
     parseList(client);
-  } else if(openingChar == '"') {
+  } else if(c == '"') {
     parseString(client);
-  } else if(openingChar == '{') {
+  } else if(c == '{') {
     parseObject(client);
   } else {
-    parseLiteral(client, openingChar);
+    parseLiteral(client, c);
   }
 }
 
 void parseKey(EthernetClient *client) {
   String key;
-  char c;
 
   while((*client).available()) {
     c = (*client).read();
@@ -148,7 +157,6 @@ void parseKey(EthernetClient *client) {
 }
 
 void parseBody(EthernetClient *client) {
-  char c;
 
   while((*client).available()) {
     c = (*client).read();
@@ -161,7 +169,6 @@ void parseBody(EthernetClient *client) {
 
 void skipHeader(EthernetClient *client) {
   boolean currentRowIsEmpty = true;
-  char c;
 
   while((*client).available()) {
     c = (*client).read();
