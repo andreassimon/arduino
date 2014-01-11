@@ -34,7 +34,10 @@ void setup() {
   // http://slashjenkins.slashhosting.de
   if(client.connect("slashjenkins.slashhosting.de" , 80)) {
     Serial.println("connected");
-    client.println("GET /jenkins/job/mediamonitor3-quellendatenbank/api/json HTTP/1.0");
+    client.print("GET ");
+    client.print("/jenkins/job/mm3-quellendatenbank-deployment/api/json");
+    // client.println("/jenkins/job/mediamonitor3-quellendatenbank/api/json");
+    client.println(" HTTP/1.0");
     client.println("Host: slashjenkins.slashhosting.de");
     client.println();
   } else {
@@ -81,21 +84,24 @@ void parseObject(EthernetClient *client) {
   }
 }
 
-/* void parseString(EthernetClient *client) { */
-/*   String value; */
+String value;
+String color;
+void parseColor(EthernetClient *client) {
+  // value = String();
 
-/*   while((*client).available()) { */
-/*     c = (*client).read(); */
-/*     if(c == '"') { */
-/*       (*client).read(); // skip ',' */
-/*       (*client).read(); // skip '"' */
-/*       Serial.println(value); */
-/*       parseKey(client); */
-/*       break; */
-/*     } */
-/*     value += c; */
-/*   } */
-/* } */
+  while((*client).available()) {
+    c = (*client).read();
+    if(c == '"') {
+      (*client).read(); // skip ','
+      (*client).read(); // skip '"'
+      Serial.println(value);
+      color = value;
+      parseKey(client);
+      break;
+    }
+    value += c;
+  }
+}
 
 void parseString(EthernetClient *client) {
 
@@ -149,7 +155,12 @@ void parseKey(EthernetClient *client) {
       (*client).read(); // skip ':'
       Serial.print(key);
       Serial.print(": ");
-      parseValue(client);
+      if(key == "color") {
+        (*client).read(); // skip '"'
+        parseColor(client);
+      } else {
+        parseValue(client);
+      }
       break;
     }
     key += c;
@@ -192,6 +203,15 @@ void loop() {
 
   if (!client.connected()) {
     client.stop();
+    Serial.println();
+    Serial.println(color);
+    if(color == "blue") {
+      digitalWrite(greenLed, HIGH);
+      digitalWrite(redLed, LOW);
+    } else {
+      digitalWrite(greenLed, LOW);
+      digitalWrite(redLed, HIGH);
+    }
     for(;;)
       ;
   }
