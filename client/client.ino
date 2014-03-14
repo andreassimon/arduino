@@ -16,6 +16,23 @@ int redLed = 4;
 int greenLed = 3;
 int blueLed = 2;
 
+void GET(const char **host, const char **uri) {
+  if(client.connect(*host, 80)) {
+    /* Serial.println("connected"); */
+    client.print("GET ");
+    client.print(*uri);
+    client.println(" HTTP/1.0");
+    client.print("Host: ");
+    client.println(*host);
+    client.println();
+  } else {
+    Serial.println("HTTP connection failed");
+  }
+}
+
+const char *jenkins = "slashjenkins.slashhosting.de";
+const char *mm3_quellendatenbank = "/jenkins/job/mediamonitor3-quellendatenbank/api/json";
+
 void setup() {
   pinMode(redLed, OUTPUT);
   pinMode(greenLed, OUTPUT);
@@ -31,31 +48,19 @@ void setup() {
   Ethernet.begin(mac, ip);
 
   delay(2000);
-  // http://slashjenkins.slashhosting.de
-  if(client.connect("slashjenkins.slashhosting.de" , 80)) {
-    Serial.println("connected");
-    client.print("GET ");
-    client.print("/jenkins/job/mm3-quellendatenbank-deployment/api/json");
-    // client.println("/jenkins/job/mediamonitor3-quellendatenbank/api/json");
-    client.println(" HTTP/1.0");
-    client.println("Host: slashjenkins.slashhosting.de");
-    client.println();
-  } else {
-    Serial.println("connection failed");
-  }
 }
 
 char c;
 void parseKey(EthernetClient *client);
 
 void parseList(EthernetClient *client) {
-  Serial.write('[');
+  /* Serial.write('['); */
 
   while((*client).available()) {
     c = (*client).read();
-    Serial.write(c);
+    /* Serial.write(c); */
     if(c == ']') {
-      Serial.println();
+      /* Serial.println(); */
       if((*client).available()) {
         (*client).read(); // skip ','
       }
@@ -69,15 +74,19 @@ void parseList(EthernetClient *client) {
 }
 
 void parseObject(EthernetClient *client) {
-  Serial.write('{');
+  /* Serial.write('{'); */
 
   while((*client).available()) {
     c = (*client).read();
-    Serial.write(c);
+    /* Serial.write(c); */
     if(c == '}') {
-      Serial.println();
-      (*client).read(); // skip ','
-      (*client).read(); // skip '"'
+      /* Serial.println(); */
+      if((*client).available()) {
+        (*client).read(); // skip ','
+      }
+      if((*client).available()) {
+        (*client).read(); // skip '"'
+      }
       parseKey(client);
       break;
     }
@@ -92,9 +101,13 @@ void parseColor(EthernetClient *client) {
   while((*client).available()) {
     c = (*client).read();
     if(c == '"') {
-      (*client).read(); // skip ','
-      (*client).read(); // skip '"'
-      Serial.println(value);
+      if((*client).available()) {
+        (*client).read(); // skip ','
+      }
+      if((*client).available()) {
+        (*client).read(); // skip '"'
+      }
+      /* Serial.println(value); */
       color = value;
       parseKey(client);
       break;
@@ -108,28 +121,34 @@ void parseString(EthernetClient *client) {
   while((*client).available()) {
     c = (*client).read();
     if(c == '"') {
-      (*client).read(); // skip ','
-      (*client).read(); // skip '"'
-      Serial.println();
+      if((*client).available()) {
+        (*client).read(); // skip ','
+      }
+      if((*client).available()) {
+        (*client).read(); // skip '"'
+      }
+      /* Serial.println(); */
       parseKey(client);
       break;
     }
-    Serial.write(c);
+    /* Serial.write(c); */
   }
 }
 
 void parseLiteral(EthernetClient *client, char openingChar) {
-  Serial.write(openingChar);
+  /* Serial.write(openingChar); */
 
   while((*client).available()) {
     c = (*client).read();
     if(c == ',') {
-      (*client).read(); // skip '"'
-      Serial.println();
+      if((*client).available()) {
+        (*client).read(); // skip '"'
+      }
+      /* Serial.println(); */
       parseKey(client);
       break;
     }
-    Serial.write(c);
+    /* Serial.write(c); */
   }
 }
 
@@ -152,9 +171,11 @@ void parseKey(EthernetClient *client) {
   while((*client).available()) {
     c = (*client).read();
     if(c == '"') {
-      (*client).read(); // skip ':'
-      Serial.print(key);
-      Serial.print(": ");
+      if((*client).available()) {
+        (*client).read(); // skip ':'
+      }
+      /* Serial.print(key); */
+      /* Serial.print(": "); */
       if(key == "color") {
         (*client).read(); // skip '"'
         parseColor(client);
@@ -199,6 +220,7 @@ void skipHeader(EthernetClient *client) {
 }
 
 void loop() {
+  GET(&jenkins, &mm3_quellendatenbank);
   skipHeader(&client);
 
   if (!client.connected()) {
