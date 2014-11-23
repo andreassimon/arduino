@@ -19,7 +19,7 @@ int blueLed = 2;
 void clearStr(char* str) {
   int len = strlen(str);
   for(int c=0; c<len; c++) {
-    Serial.println(c);
+    /* Serial.println(c); */
     str[c] = 0;
   }
   str[0] = '\0';
@@ -27,7 +27,8 @@ void clearStr(char* str) {
 
 void GET(const char **host, const char **uri) {
   Serial.println("GET");
-  if(client.connect(*host, 80)) {
+  int connStatus = client.connect(*host, 80);
+  if(connStatus) {
     /* Serial.println("connected"); */
     client.print("GET ");
     client.print(*uri);
@@ -36,7 +37,8 @@ void GET(const char **host, const char **uri) {
     client.println(*host);
     client.println();
   } else {
-    Serial.println("HTTP connection failed");
+    Serial.print("HTTP connection failed: ");
+    Serial.println(connStatus);
   }
 }
 
