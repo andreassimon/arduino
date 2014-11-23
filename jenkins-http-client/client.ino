@@ -12,10 +12,6 @@ IPAddress ip(192,168,178,230);
 EthernetClient client;
 
 
-int redLed = 4;
-int greenLed = 3;
-int blueLed = 2;
-
 void clearStr(char* str) {
   int len = strlen(str);
   for(int c=0; c<len; c++) {
@@ -46,10 +42,6 @@ const char *jenkins = "slashjenkins.slashhosting.de";
 const char *mm3_quellendatenbank = "/jenkins/job/mediamonitor3-quellendatenbank/api/json";
 
 void setup() {
-  pinMode(redLed, OUTPUT);
-  pinMode(greenLed, OUTPUT);
-  pinMode(blueLed, OUTPUT);
-
   // Open serial communications and wait for port to open:
   Serial.begin(9600);
   while (!Serial) {
@@ -245,18 +237,9 @@ void loop() {
     client.stop();
     Serial.println();
     Serial.println(color);
-    if(strcmp(color, "blue") == 0) {
-      digitalWrite(greenLed, HIGH);
-      digitalWrite(redLed, LOW);
-    } else {
-      digitalWrite(greenLed, LOW);
-      digitalWrite(redLed, HIGH);
-    }
     delay(5000);
     clearStr(color);
 
-    digitalWrite(greenLed, LOW);
-    digitalWrite(redLed, LOW);
     delay(1000);
   }
 }
