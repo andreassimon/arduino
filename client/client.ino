@@ -16,7 +16,17 @@ int redLed = 4;
 int greenLed = 3;
 int blueLed = 2;
 
+void clearStr(char* str) {
+  int len = strlen(str);
+  for(int c=0; c<len; c++) {
+    Serial.println(c);
+    str[c] = 0;
+  }
+  str[0] = '\0';
+}
+
 void GET(const char **host, const char **uri) {
+  Serial.println("GET");
   if(client.connect(*host, 80)) {
     /* Serial.println("connected"); */
     client.print("GET ");
@@ -94,7 +104,7 @@ void parseObject(EthernetClient *client) {
 }
 
 String value;
-String color;
+char color[100] = "";
 void parseColor(EthernetClient *client) {
   // value = String();
 
@@ -108,7 +118,10 @@ void parseColor(EthernetClient *client) {
         (*client).read(); // skip '"'
       }
       /* Serial.println(value); */
-      color = value;
+      // color = value;
+      // strlcpy(color, "", 100);
+      color[0] = '\0';
+      value.toCharArray(color, 100);
       parseKey(client);
       break;
     }
@@ -200,6 +213,7 @@ void parseBody(EthernetClient *client) {
 }
 
 void skipHeader(EthernetClient *client) {
+  Serial.println("skipHeader");
   boolean currentRowIsEmpty = true;
 
   while((*client).available()) {
@@ -219,6 +233,8 @@ void skipHeader(EthernetClient *client) {
   }
 }
 
+char foo[100] = "";
+
 void loop() {
   GET(&jenkins, &mm3_quellendatenbank);
   skipHeader(&client);
@@ -227,15 +243,19 @@ void loop() {
     client.stop();
     Serial.println();
     Serial.println(color);
-    if(color == "blue") {
+    if(strcmp(color, "blue") == 0) {
       digitalWrite(greenLed, HIGH);
       digitalWrite(redLed, LOW);
     } else {
       digitalWrite(greenLed, LOW);
       digitalWrite(redLed, HIGH);
     }
-    for(;;)
-      ;
+    delay(5000);
+    clearStr(color);
+
+    digitalWrite(greenLed, LOW);
+    digitalWrite(redLed, LOW);
+    delay(1000);
   }
 }
 
