@@ -9,23 +9,21 @@ const int VERTICAL_TAB = 13;
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 IPAddress ip(192,168,178,230);
 
+const char *jenkins = "slashjenkins.slashhosting.de";
+const char *mm3_quellendatenbank = "/jenkins/job/mediamonitor3-quellendatenbank/api/json";
+
 EthernetClient client;
 
 
-void clearStr(char* str) {
-  int len = strlen(str);
-  for(int c=0; c<len; c++) {
-    /* Serial.println(c); */
-    str[c] = 0;
-  }
-  str[0] = '\0';
-}
-
 void GET(const char **host, const char **uri) {
-  Serial.println("GET");
   int connStatus = client.connect(*host, 80);
   if(connStatus) {
-    /* Serial.println("connected"); */
+    Serial.print("GET http://");
+    Serial.print(*host);
+    Serial.print(":80");
+    Serial.print(*uri);
+    Serial.println();
+
     client.print("GET ");
     client.print(*uri);
     client.println(" HTTP/1.0");
@@ -37,9 +35,6 @@ void GET(const char **host, const char **uri) {
     Serial.println(connStatus);
   }
 }
-
-const char *jenkins = "slashjenkins.slashhosting.de";
-const char *mm3_quellendatenbank = "/jenkins/job/mediamonitor3-quellendatenbank/api/json";
 
 void setup() {
   // Open serial communications and wait for port to open:
@@ -98,9 +93,8 @@ void parseObject(EthernetClient *client) {
 }
 
 String value;
-char color[100] = "";
 void parseColor(EthernetClient *client) {
-  // value = String();
+  value = String();
 
   while((*client).available()) {
     c = (*client).read();
@@ -111,11 +105,6 @@ void parseColor(EthernetClient *client) {
       if((*client).available()) {
         (*client).read(); // skip '"'
       }
-      /* Serial.println(value); */
-      // color = value;
-      // strlcpy(color, "", 100);
-      color[0] = '\0';
-      value.toCharArray(color, 100);
       parseKey(client);
       break;
     }
@@ -207,7 +196,6 @@ void parseBody(EthernetClient *client) {
 }
 
 void skipHeader(EthernetClient *client) {
-  Serial.println("skipHeader");
   boolean currentRowIsEmpty = true;
 
   while((*client).available()) {
@@ -227,8 +215,6 @@ void skipHeader(EthernetClient *client) {
   }
 }
 
-char foo[100] = "";
-
 void loop() {
   GET(&jenkins, &mm3_quellendatenbank);
   skipHeader(&client);
@@ -236,11 +222,8 @@ void loop() {
   if (!client.connected()) {
     client.stop();
     Serial.println();
-    Serial.println(color);
+    Serial.println(value);
     delay(5000);
-    clearStr(color);
-
-    delay(1000);
   }
 }
 
