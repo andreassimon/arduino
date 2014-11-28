@@ -9,20 +9,23 @@ const int VERTICAL_TAB = 13;
 // Enter a MAC address and IP address for your controller below.
 // The IP address will be dependent on your local network:
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
-IPAddress ip(192,168,178,230);
+// IPAddress ip(192,168,178,230);
+IPAddress ip(10,10,11,13);
 
-const char *jenkins = "slashjenkins.slashhosting.de";
+const char *jenkins = "10.10.11.16";
+// const char *jenkins = "slashjenkins.slashhosting.de";
 const char *mm3_quellendatenbank = "/jenkins/job/mediamonitor3-quellendatenbank/api/json";
+const char *mm3_quellendatenbank_deployment = "/jenkins/job/mm3-quellendatenbank-deployment/api/json";
 
 EthernetClient client;
 
 
 void GET(const char **host, const char **uri) {
-  int connStatus = client.connect(*host, 80);
+  int connStatus = client.connect(*host, 8080);
   if(connStatus) {
     Serial.print("GET http://");
     Serial.print(*host);
-    Serial.print(":80");
+    Serial.print(":8080");
     Serial.print(*uri);
     Serial.println();
 
