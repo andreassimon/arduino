@@ -14,18 +14,20 @@ IPAddress ip(10,10,11,13);
 
 const char *jenkins = "10.10.11.16";
 // const char *jenkins = "slashjenkins.slashhosting.de";
-const char *mm3_quellendatenbank = "/jenkins/job/mediamonitor3-quellendatenbank/api/json";
-const char *mm3_quellendatenbank_deployment = "/jenkins/job/mm3-quellendatenbank-deployment/api/json";
+const char *job1 = "/jenkins/job/blue-job/api/json";
+const char *job2 = "/jenkins/job/red-job/api/json";
 
 EthernetClient client;
 
 
 void GET(const char **host, const char **uri) {
-  int connStatus = client.connect(*host, 8080);
-  if(connStatus) {
+  int port = 8080;
+  int connStatus = client.connect(*host, port);
+  if(connStatus >= 0) {
     Serial.print("GET http://");
     Serial.print(*host);
-    Serial.print(":8080");
+    Serial.print(":");
+    Serial.print(port);
     Serial.print(*uri);
     Serial.println();
 
@@ -223,15 +225,31 @@ void skipHeader(EthernetClient *client) {
 }
 
 void loop() {
-  GET(&jenkins, &mm3_quellendatenbank);
+  Serial.println();
+  Serial.println();
+
+  GET(&jenkins, &job1);
   skipHeader(&client);
 
   if (!client.connected()) {
     client.stop();
-    Serial.print(" -> ");
+    Serial.print(" job1 -> ");
     Serial.println(value);
-    delay(5000);
   }
+  delay(2500);
+
+  Serial.println();
+  Serial.println();
+
+  GET(&jenkins, &job2);
+  skipHeader(&client);
+
+  if (!client.connected()) {
+    client.stop();
+    Serial.print(" job2 -> ");
+    Serial.println(value);
+  }
+  delay(2500);
 }
 
 // vim:ft=cpp
