@@ -1,6 +1,8 @@
 #include <SPI.h>
 #include <Ethernet.h>
 
+#define DEBUG
+
 const int VERTICAL_TAB = 13;
 
 
@@ -31,8 +33,10 @@ void GET(const char **host, const char **uri) {
     client.println(*host);
     client.println();
   } else {
+#ifdef DEBUG
     Serial.print("HTTP connection failed: ");
     Serial.println(connStatus);
+#endif
   }
 }
 
@@ -221,7 +225,7 @@ void loop() {
 
   if (!client.connected()) {
     client.stop();
-    Serial.println();
+    Serial.print(" -> ");
     Serial.println(value);
     delay(5000);
   }
