@@ -12,6 +12,7 @@ IPAddress ip(10,10,11,13);
 
 const char *jenkins = "10.10.11.16";
 // const char *jenkins = "slashjenkins.slashhosting.de";
+const int port = 8080;
 const char *job1 = "/jenkins/job/blue-job/api/json";
 const char *job2 = "/jenkins/job/red-job/api/json";
 
@@ -39,7 +40,6 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_PIXELS, PIN, NEO_GRB + NEO_KHZ80
 EthernetClient client;
 
 void GET(const char **host, const char **uri) {
-  int port = 8080;
   int connStatus = client.connect(*host, port);
   if(connStatus >= 0) {
     Serial.print("GET http://");
@@ -258,17 +258,9 @@ void parseResponse(EthernetClient *client) {
   }
 }
 
-void switchPixelTo(uint16_t pixel, uint32_t color) {
+void setPixel(uint16_t pixel, uint32_t color) {
   strip.setPixelColor(pixel, color);
   strip.show();
-}
-
-void setPixelRed(uint16_t pixel) {
-  switchPixelTo(pixel, RED);
-}
-
-void setPixelGreen(uint16_t pixel) {
-  switchPixelTo(pixel, GREEN);
 }
 
 void loop() {
@@ -282,8 +274,10 @@ void loop() {
     client.stop();
     Serial.print(" job1 -> ");
     Serial.println(value);
-    setPixelGreen(1);
   }
+  setPixel(1, GREEN);
+  setPixel(2, GREEN);
+  setPixel(3, GREEN);
   delay(2500);
 
   Serial.println();
@@ -296,9 +290,14 @@ void loop() {
     client.stop();
     Serial.print(" job2 -> ");
     Serial.println(value);
-    setPixelRed(2);
   }
+  setPixel(4, RED);
+  setPixel(5, RED);
+  setPixel(6, RED);
   delay(2500);
+  setPixel(4, GREEN);
+  setPixel(5, GREEN);
+  setPixel(6, GREEN);
 }
 
 // vim:ft=c
