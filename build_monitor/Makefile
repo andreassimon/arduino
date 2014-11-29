@@ -18,6 +18,6 @@ PROGRAMMER = arduino
 # Where to find header files and libraries.
 INC_DIRS = ./inc
 LIB_DIRS = $(addprefix $(ARD_HOME)/libraries/, $(LIBS)) $(PWD)/lib/Adafruit_NeoPixel/
-LIBS =
+LIBS = Ethernet Ethernet/utility SPI
 
 include ../Makefile.master

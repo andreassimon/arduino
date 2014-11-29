@@ -1,4 +1,23 @@
+#include <SPI.h>
+#include <Ethernet.h>
+
 #include <Adafruit_NeoPixel.h>
+
+#define DEBUG
+
+// Enter the IP address for your controller below.
+// The IP address is dependent on your local network:
+// IPAddress ip(192,168,178,230);
+IPAddress ip(10,10,11,13);
+
+const char *jenkins = "10.10.11.16";
+// const char *jenkins = "slashjenkins.slashhosting.de";
+const char *job1 = "/jenkins/job/blue-job/api/json";
+const char *job2 = "/jenkins/job/red-job/api/json";
+
+byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
+
+const int VERTICAL_TAB = 13;
 
 #define PIN 6
 #define NUM_PIXELS 24
@@ -17,6 +36,33 @@
 //   NEO_GRB     Pixels are wired for GRB bitstream (most NeoPixel products)
 //   NEO_RGB     Pixels are wired for RGB bitstream (v1 FLORA pixels, not v2)
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_PIXELS, PIN, NEO_GRB + NEO_KHZ800);
+EthernetClient client;
+
+void GET(const char **host, const char **uri) {
+  int port = 8080;
+  int connStatus = client.connect(*host, port);
+  if(connStatus >= 0) {
+    Serial.print("GET http://");
+    Serial.print(*host);
+    Serial.print(":");
+    Serial.print(port);
+    Serial.print(*uri);
+    Serial.println();
+
+    client.print("GET ");
+    client.print(*uri);
+    client.println(" HTTP/1.0");
+    client.print("Host: ");
+    client.println(*host);
+    client.println();
+  } else {
+#ifdef DEBUG
+    Serial.print("HTTP connection failed: ");
+    Serial.println(connStatus);
+#endif
+  }
+}
+
 
 // Fill the dots one after the other with a color
 void colorWipe(uint32_t c, uint8_t wait) {
@@ -28,12 +74,188 @@ void colorWipe(uint32_t c, uint8_t wait) {
 }
 
 void setup() {
+  // Open serial communications and wait for port to open:
+  Serial.begin(9600);
+  while (!Serial) {
+    ; // wait for serial port to connect. Needed for Leonardo only
+  }
+
+  // start the Ethernet connection and the server:
+  Ethernet.begin(mac, ip);
+
+  delay(2000);
   strip.begin();
   strip.show(); // Initialize all pixels to 'off'
   colorWipe(RED  , 50);
   colorWipe(GREEN, 50);
   colorWipe(BLUE , 50);
   delay(WAIT);
+}
+
+char c;
+void parseKey(EthernetClient *client);
+
+void parseList(EthernetClient *client) {
+  /* Serial.write('['); */
+
+  while((*client).available()) {
+    c = (*client).read();
+    /* Serial.write(c); */
+    if(c == ']') {
+      /* Serial.println(); */
+      if((*client).available()) {
+        (*client).read(); // skip ','
+      }
+      if((*client).available()) {
+        (*client).read(); // skip '"'
+      }
+      parseKey(client);
+      break;
+    }
+  }
+}
+
+void parseObject(EthernetClient *client) {
+  /* Serial.write('{'); */
+
+  while((*client).available()) {
+    c = (*client).read();
+    /* Serial.write(c); */
+    if(c == '}') {
+      /* Serial.println(); */
+      if((*client).available()) {
+        (*client).read(); // skip ','
+      }
+      if((*client).available()) {
+        (*client).read(); // skip '"'
+      }
+      parseKey(client);
+      break;
+    }
+  }
+}
+
+String value;
+void parseColor(EthernetClient *client) {
+  value = String();
+
+  while((*client).available()) {
+    c = (*client).read();
+    if(c == '"') {
+      if((*client).available()) {
+        (*client).read(); // skip ','
+      }
+      if((*client).available()) {
+        (*client).read(); // skip '"'
+      }
+      parseKey(client);
+      break;
+    }
+    value += c;
+  }
+}
+
+void parseString(EthernetClient *client) {
+
+  while((*client).available()) {
+    c = (*client).read();
+    if(c == '"') {
+      if((*client).available()) {
+        (*client).read(); // skip ','
+      }
+      if((*client).available()) {
+        (*client).read(); // skip '"'
+      }
+      /* Serial.println(); */
+      parseKey(client);
+      break;
+    }
+    /* Serial.write(c); */
+  }
+}
+
+void parseLiteral(EthernetClient *client, char openingChar) {
+  /* Serial.write(openingChar); */
+
+  while((*client).available()) {
+    c = (*client).read();
+    if(c == ',') {
+      if((*client).available()) {
+        (*client).read(); // skip '"'
+      }
+      /* Serial.println(); */
+      parseKey(client);
+      break;
+    }
+    /* Serial.write(c); */
+  }
+}
+
+void parseValue(EthernetClient *client) {
+  c = (*client).read();
+  if(c == '[') {
+    parseList(client);
+  } else if(c == '"') {
+    parseString(client);
+  } else if(c == '{') {
+    parseObject(client);
+  } else {
+    parseLiteral(client, c);
+  }
+}
+
+void parseKey(EthernetClient *client) {
+  String key;
+
+  while((*client).available()) {
+    c = (*client).read();
+    if(c == '"') {
+      if((*client).available()) {
+        (*client).read(); // skip ':'
+      }
+      /* Serial.print(key); */
+      /* Serial.print(": "); */
+      if(key == "color") {
+        (*client).read(); // skip '"'
+        parseColor(client);
+      } else {
+        parseValue(client);
+      }
+      break;
+    }
+    key += c;
+  }
+}
+
+void parseBody(EthernetClient *client) {
+
+  while((*client).available()) {
+    c = (*client).read();
+    if(c == '"') {
+      parseKey(client);
+      break;
+    }
+  }
+}
+
+void skipHeader(EthernetClient *client) {
+  boolean currentRowIsEmpty = true;
+
+  while((*client).available()) {
+    c = (*client).read();
+    if(c == VERTICAL_TAB) {
+      continue;
+    }
+    if(c == '\n') {
+      if(currentRowIsEmpty) {
+        parseBody(client);
+        break;
+      }
+      currentRowIsEmpty = true;
+    } else {
+      currentRowIsEmpty = false;
+    }
+  }
 }
 
 void switchPixelTo(uint16_t pixel, uint32_t color) {
@@ -58,6 +280,32 @@ void loop() {
   delay(WAIT);
   setPixelGreen(random(NUM_PIXELS));
   delay(WAIT);
+
+  Serial.println();
+  Serial.println();
+
+  GET(&jenkins, &job1);
+  skipHeader(&client);
+
+  if (!client.connected()) {
+    client.stop();
+    Serial.print(" job1 -> ");
+    Serial.println(value);
+  }
+  delay(2500);
+
+  Serial.println();
+  Serial.println();
+
+  GET(&jenkins, &job2);
+  skipHeader(&client);
+
+  if (!client.connected()) {
+    client.stop();
+    Serial.print(" job2 -> ");
+    Serial.println(value);
+  }
+  delay(2500);
 }
 
 // vim:ft=c
