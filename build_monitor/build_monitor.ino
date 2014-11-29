@@ -54,6 +54,7 @@ void GET(const char **host, const char **uri) {
     client.println(" HTTP/1.0");
     client.print("Host: ");
     client.println(*host);
+    client.println("User-Agent: Arduino Uno Build Monitor");
     client.println();
   } else {
 #ifdef DEBUG
@@ -83,13 +84,12 @@ void setup() {
   // start the Ethernet connection and the server:
   Ethernet.begin(mac, ip);
 
-  delay(2000);
   strip.begin();
   strip.show(); // Initialize all pixels to 'off'
   colorWipe(RED  , 50);
   colorWipe(GREEN, 50);
   colorWipe(BLUE , 50);
-  delay(WAIT);
+  colorWipe(BLACK, 50);
 }
 
 char c;
@@ -259,7 +259,7 @@ void skipHeader(EthernetClient *client) {
 }
 
 void switchPixelTo(uint16_t pixel, uint32_t color) {
-  strip.setPixelColor(pixel, BLACK);
+  strip.setPixelColor(pixel, color);
   strip.show();
 }
 
@@ -271,16 +271,7 @@ void setPixelGreen(uint16_t pixel) {
   switchPixelTo(pixel, GREEN);
 }
 
-long randomPixel;
 void loop() {
-  // Some example procedures showing how to display to the pixels:
-  // rainbow(20);
-  // rainbowCycle(100);
-  setPixelRed(random(NUM_PIXELS));
-  delay(WAIT);
-  setPixelGreen(random(NUM_PIXELS));
-  delay(WAIT);
-
   Serial.println();
   Serial.println();
 
@@ -291,6 +282,7 @@ void loop() {
     client.stop();
     Serial.print(" job1 -> ");
     Serial.println(value);
+    setPixelGreen(1);
   }
   delay(2500);
 
@@ -304,6 +296,7 @@ void loop() {
     client.stop();
     Serial.print(" job2 -> ");
     Serial.println(value);
+    setPixelRed(2);
   }
   delay(2500);
 }
