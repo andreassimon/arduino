@@ -238,7 +238,7 @@ void parseBody(EthernetClient *client) {
   }
 }
 
-void skipHeader(EthernetClient *client) {
+void parseResponse(EthernetClient *client) {
   boolean currentRowIsEmpty = true;
 
   while((*client).available()) {
@@ -276,7 +276,7 @@ void loop() {
   Serial.println();
 
   GET(&jenkins, &job1);
-  skipHeader(&client);
+  parseResponse(&client);
 
   if (!client.connected()) {
     client.stop();
@@ -290,7 +290,7 @@ void loop() {
   Serial.println();
 
   GET(&jenkins, &job2);
-  skipHeader(&client);
+  parseResponse(&client);
 
   if (!client.connected()) {
     client.stop();
