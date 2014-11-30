@@ -18,6 +18,7 @@ const char *job2 = "/jenkins/job/red-job/api/json";
 
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 
+const unsigned long responseTimeout = 15L * 1000L;
 const int VERTICAL_TAB = 13;
 
 #define PIN 6
@@ -138,8 +139,6 @@ void parseObject(EthernetClient *client) {
 
 String value;
 void parseColor(EthernetClient *client) {
-  value = String();
-
   while((*client).available()) {
     c = (*client).read();
     if(c == '"') {
@@ -240,8 +239,10 @@ void parseBody(EthernetClient *client) {
 }
 
 void parseResponse(EthernetClient *client) {
+  value = String();
   boolean currentRowIsEmpty = true;
 
+  unsigned long t = millis(); while((!(*client).available()) && ((millis() - t) < responseTimeout));
   while((*client).available()) {
     c = (*client).read();
     if(c == VERTICAL_TAB) {
@@ -265,6 +266,7 @@ void setPixel(uint16_t pixel, uint32_t color) {
 }
 
 void loop() {
+
 #ifdef DEBUG
   Serial.println();
   Serial.println();
@@ -272,6 +274,7 @@ void loop() {
 
   GET(&jenkins, &job1);
   parseResponse(&client);
+
   while(client.available()) {
     char c = client.read();
     Serial.print(c);
@@ -286,11 +289,10 @@ void loop() {
   Serial.println(client.connected());
 #endif
 
-  if (!client.connected()) {
-    client.stop();
-    Serial.print(" job1 -> ");
-    Serial.println(value);
-  }
+  client.stop();
+  Serial.print(" job1 -> ");
+  Serial.println(value);
+
   setPixel(1, GREEN);
   setPixel(2, GREEN);
   setPixel(3, GREEN);
@@ -315,11 +317,10 @@ void loop() {
   Serial.println(client.connected());
 #endif
 
-  if (!client.connected()) {
-    client.stop();
-    Serial.print(" job2 -> ");
-    Serial.println(value);
-  }
+  client.stop();
+  Serial.print(" job2 -> ");
+  Serial.println(value);
+
   setPixel(4, RED);
   setPixel(5, RED);
   setPixel(6, RED);
