@@ -264,11 +264,26 @@ void setPixel(uint16_t pixel, uint32_t color) {
 }
 
 void loop() {
+#ifdef DEBUG
   Serial.println();
   Serial.println();
+#endif
 
   GET(&jenkins, &job1);
   parseResponse(&client);
+  while(client.available()) {
+    char c = client.read();
+    Serial.print(c);
+  }
+
+#ifdef DEBUG
+  Serial.print(__LINE__);
+  Serial.print(": client.available() => ");
+  Serial.println(client.available());
+  Serial.print(__LINE__);
+  Serial.print(": client.connected() => ");
+  Serial.println(client.connected());
+#endif
 
   if (!client.connected()) {
     client.stop();
@@ -285,6 +300,19 @@ void loop() {
 
   GET(&jenkins, &job2);
   parseResponse(&client);
+  while(client.available()) {
+    char c = client.read();
+    Serial.print(c);
+  }
+
+#ifdef DEBUG
+  Serial.print(__LINE__);
+  Serial.print(": client.available() => ");
+  Serial.println(client.available());
+  Serial.print(__LINE__);
+  Serial.print(": client.connected() => ");
+  Serial.println(client.connected());
+#endif
 
   if (!client.connected()) {
     client.stop();
