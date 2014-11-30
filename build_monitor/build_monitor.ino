@@ -275,11 +275,6 @@ void loop() {
   GET(&jenkins, &job1);
   parseResponse(&client);
 
-  while(client.available()) {
-    char c = client.read();
-    Serial.print(c);
-  }
-
 #ifdef DEBUG
   Serial.print(__LINE__);
   Serial.print(": client.available() => ");
@@ -293,9 +288,19 @@ void loop() {
   Serial.print(" job1 -> ");
   Serial.println(value);
 
-  setPixel(1, GREEN);
-  setPixel(2, GREEN);
-  setPixel(3, GREEN);
+  if(String("blue") == value) {
+    setPixel(1, GREEN);
+    setPixel(2, GREEN);
+    setPixel(3, GREEN);
+  } else if(String("red") == value) {
+    setPixel(1, RED);
+    setPixel(2, RED);
+    setPixel(3, RED);
+  } else {
+    setPixel(1, BLACK);
+    setPixel(2, BLACK);
+    setPixel(3, BLACK);
+  }
   delay(2500);
 
   Serial.println();
@@ -303,10 +308,6 @@ void loop() {
 
   GET(&jenkins, &job2);
   parseResponse(&client);
-  while(client.available()) {
-    char c = client.read();
-    Serial.print(c);
-  }
 
 #ifdef DEBUG
   Serial.print(__LINE__);
@@ -324,10 +325,6 @@ void loop() {
   setPixel(4, RED);
   setPixel(5, RED);
   setPixel(6, RED);
-  delay(2500);
-  setPixel(4, GREEN);
-  setPixel(5, GREEN);
-  setPixel(6, GREEN);
 }
 
 // vim:ft=c
