@@ -55,6 +55,7 @@ void GET(const char **host, const char **uri) {
     client.print("Host: ");
     client.println(*host);
     client.println("User-Agent: Arduino Uno Build Monitor");
+    client.println("Connection: close");
     client.println();
   } else {
 #ifdef DEBUG
