@@ -23,11 +23,11 @@ const int VERTICAL_TAB = 13;
 
 #define PIN 6
 #define NUM_PIXELS 24
-#define BLACK strip.Color( 0,  0,  0)
-#define WHITE strip.Color(30, 30, 30)
-#define GREEN strip.Color( 0, 30,  0)
-#define BLUE  strip.Color( 0,  0, 30)
-#define RED   strip.Color(30,  0,  0)
+#define BLACK strip.Color(  0,   0,   0)
+#define WHITE strip.Color( 20,  20,  20)
+#define GREEN strip.Color(  0,  50,   0)
+#define BLUE  strip.Color(  0,   0,  30)
+#define RED   strip.Color(128,   0,   0)
 #define WAIT  400
 
 // Parameter 1 = number of pixels in strip
@@ -297,9 +297,9 @@ void loop() {
     setPixel(2, RED);
     setPixel(3, RED);
   } else {
-    setPixel(1, BLACK);
-    setPixel(2, BLACK);
-    setPixel(3, BLACK);
+    setPixel(1, WHITE);
+    setPixel(2, WHITE);
+    setPixel(3, WHITE);
   }
   delay(2500);
 
@@ -322,9 +322,19 @@ void loop() {
   Serial.print(" job2 -> ");
   Serial.println(value);
 
-  setPixel(4, RED);
-  setPixel(5, RED);
-  setPixel(6, RED);
+  if(String("blue") == value) {
+    setPixel(4, GREEN);
+    setPixel(5, GREEN);
+    setPixel(6, GREEN);
+  } else if(String("red") == value) {
+    setPixel(4, RED);
+    setPixel(5, RED);
+    setPixel(6, RED);
+  } else {
+    setPixel(4, WHITE);
+    setPixel(5, WHITE);
+    setPixel(6, WHITE);
+  }
 }
 
 // vim:ft=c
