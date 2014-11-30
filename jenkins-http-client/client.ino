@@ -24,12 +24,14 @@ void GET(const char **host, const char **uri) {
   int port = 8080;
   int connStatus = client.connect(*host, port);
   if(connStatus >= 0) {
+#ifdef DEBUG
     Serial.print("GET http://");
     Serial.print(*host);
     Serial.print(":");
     Serial.print(port);
     Serial.print(*uri);
     Serial.println();
+#endif
 
     client.print("GET ");
     client.print(*uri);
