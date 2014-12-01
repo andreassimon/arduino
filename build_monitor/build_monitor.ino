@@ -99,96 +99,92 @@ char c;
 void parseKey(EthernetClient *client);
 
 void parseList(EthernetClient *client) {
-  /* Serial.write('['); */
-
-  while((*client).available()) {
-    c = (*client).read();
-    /* Serial.write(c); */
-    if(c == ']') {
-      /* Serial.println(); */
-      if((*client).available()) {
-        (*client).read(); // skip ','
+  while((*client).connected() || (*client).available()) {
+    if((*client).available()) {
+      c = (*client).read();
+      if(c == ']') {
+        if((*client).available()) {
+          c = (*client).read(); // skip ','
+        }
+        if((*client).available()) {
+          c = (*client).read(); // skip '"'
+        }
+        parseKey(client);
+        break;
       }
-      if((*client).available()) {
-        (*client).read(); // skip '"'
-      }
-      parseKey(client);
-      break;
     }
   }
 }
 
 void parseObject(EthernetClient *client) {
-  /* Serial.write('{'); */
-
-  while((*client).available()) {
-    c = (*client).read();
-    /* Serial.write(c); */
-    if(c == '}') {
-      /* Serial.println(); */
-      if((*client).available()) {
-        (*client).read(); // skip ','
+  while((*client).connected() || (*client).available()) {
+    if((*client).available()) {
+      c = (*client).read();
+      if(c == '}') {
+        if((*client).available()) {
+          c = (*client).read(); // skip ','
+        }
+        if((*client).available()) {
+          c = (*client).read(); // skip '"'
+        }
+        parseKey(client);
+        break;
       }
-      if((*client).available()) {
-        (*client).read(); // skip '"'
-      }
-      parseKey(client);
-      break;
     }
   }
 }
 
 String value;
 void parseColor(EthernetClient *client) {
-  while((*client).available()) {
-    c = (*client).read();
-    if(c == '"') {
-      if((*client).available()) {
-        (*client).read(); // skip ','
+  while((*client).connected() || (*client).available()) {
+    if((*client).available()) {
+      c = (*client).read();
+      if(c == '"') {
+        if((*client).available()) {
+          c = (*client).read(); // skip ','
+        }
+        if((*client).available()) {
+          c = (*client).read(); // skip '"'
+        }
+        parseKey(client);
+        break;
       }
-      if((*client).available()) {
-        (*client).read(); // skip '"'
-      }
-      parseKey(client);
-      break;
+      value += c;
     }
-    value += c;
   }
 }
 
 void parseString(EthernetClient *client) {
 
-  while((*client).available()) {
-    c = (*client).read();
-    if(c == '"') {
-      if((*client).available()) {
-        (*client).read(); // skip ','
+  while((*client).connected() || (*client).available()) {
+    if((*client).available()) {
+      c = (*client).read();
+      if(c == '"') {
+        if((*client).available()) {
+          c = (*client).read(); // skip ','
+        }
+        if((*client).available()) {
+          c = (*client).read(); // skip '"'
+        }
+        parseKey(client);
+        break;
       }
-      if((*client).available()) {
-        (*client).read(); // skip '"'
-      }
-      /* Serial.println(); */
-      parseKey(client);
-      break;
     }
-    /* Serial.write(c); */
   }
 }
 
 void parseLiteral(EthernetClient *client, char openingChar) {
-  /* Serial.write(openingChar); */
-
-  while((*client).available()) {
-    c = (*client).read();
-    if(c == ',') {
-      if((*client).available()) {
-        (*client).read(); // skip '"'
+  while((*client).connected() || (*client).available()) {
+    if((*client).available()) {
+      c = (*client).read();
+      if(c == ',') {
+        if((*client).available()) {
+          c = (*client).read(); // skip '"'
+        }
+        parseKey(client);
+        break;
       }
-      /* Serial.println(); */
-      parseKey(client);
-      break;
     }
-    /* Serial.write(c); */
   }
 }
 
@@ -208,33 +204,35 @@ void parseValue(EthernetClient *client) {
 void parseKey(EthernetClient *client) {
   String key;
 
-  while((*client).available()) {
-    c = (*client).read();
-    if(c == '"') {
-      if((*client).available()) {
-        (*client).read(); // skip ':'
+  while((*client).connected() || (*client).available()) {
+    if((*client).available()) {
+      c = (*client).read();
+      if(c == '"') {
+        if((*client).available()) {
+          c = (*client).read(); // skip ':'
+        }
+        if(key == "color") {
+          c = (*client).read(); // skip '"'
+          parseColor(client);
+        } else {
+          parseValue(client);
+        }
+        break;
       }
-      /* Serial.print(key); */
-      /* Serial.print(": "); */
-      if(key == "color") {
-        (*client).read(); // skip '"'
-        parseColor(client);
-      } else {
-        parseValue(client);
-      }
-      break;
+      key += c;
     }
-    key += c;
   }
 }
 
 void parseBody(EthernetClient *client) {
 
-  while((*client).available()) {
-    c = (*client).read();
-    if(c == '"') {
-      parseKey(client);
-      break;
+  while((*client).connected() || (*client).available()) {
+    if((*client).available()) {
+      c = (*client).read();
+      if(c == '"') {
+        parseKey(client);
+        break;
+      }
     }
   }
 }
@@ -244,19 +242,21 @@ void parseResponse(EthernetClient *client) {
   boolean currentRowIsEmpty = true;
 
   unsigned long t = millis(); while((!(*client).available()) && ((millis() - t) < responseTimeout));
-  while((*client).available()) {
-    c = (*client).read();
-    if(c == VERTICAL_TAB) {
-      continue;
-    }
-    if(c == '\n') {
-      if(currentRowIsEmpty) {
-        parseBody(client);
-        break;
+  while((*client).connected() || (*client).available()) {
+    if((*client).available()) {
+      c = (*client).read();
+      if(c == VERTICAL_TAB) {
+        continue;
       }
-      currentRowIsEmpty = true;
-    } else {
-      currentRowIsEmpty = false;
+      if(c == '\n') {
+        if(currentRowIsEmpty) {
+          parseBody(client);
+          break;
+        }
+        currentRowIsEmpty = true;
+      } else {
+        currentRowIsEmpty = false;
+      }
     }
   }
 }
