@@ -266,13 +266,18 @@ void setPixel(uint16_t pixel, uint32_t color) {
   strip.show();
 }
 
+uint32_t ledColorFromJobState(String jobState) {
+  if(String("blue") == value)
+    return GREEN;
+  if(String("red") == value)
+    return RED;
+  return WHITE;
+}
+
 void loop() {
+  uint32_t color;
 
-#ifdef DEBUG
   Serial.println();
-  Serial.println();
-#endif
-
   GET(&jenkins, &job1);
   parseResponse(&client);
 
@@ -286,27 +291,15 @@ void loop() {
 #endif
 
   client.stop();
-  Serial.print(" job1 -> ");
+  Serial.print(" => ");
   Serial.println(value);
 
-  if(String("blue") == value) {
-    setPixel(1, GREEN);
-    setPixel(2, GREEN);
-    setPixel(3, GREEN);
-  } else if(String("red") == value) {
-    setPixel(1, RED);
-    setPixel(2, RED);
-    setPixel(3, RED);
-  } else {
-    setPixel(1, WHITE);
-    setPixel(2, WHITE);
-    setPixel(3, WHITE);
-  }
+  color = ledColorFromJobState(value);
+  setPixel(1, color);
+  setPixel(2, color);
+  setPixel(3, color);
 
 // Repeat
-  Serial.println();
-  Serial.println();
-
   GET(&jenkins, &job2);
   parseResponse(&client);
 
@@ -320,22 +313,13 @@ void loop() {
 #endif
 
   client.stop();
-  Serial.print(" job2 -> ");
+  Serial.print(" => ");
   Serial.println(value);
 
-  if(String("blue") == value) {
-    setPixel(4, GREEN);
-    setPixel(5, GREEN);
-    setPixel(6, GREEN);
-  } else if(String("red") == value) {
-    setPixel(4, RED);
-    setPixel(5, RED);
-    setPixel(6, RED);
-  } else {
-    setPixel(4, WHITE);
-    setPixel(5, WHITE);
-    setPixel(6, WHITE);
-  }
+  color = ledColorFromJobState(value);
+  setPixel(4, color);
+  setPixel(5, color);
+  setPixel(6, color);
 }
 
 // vim:ft=c
