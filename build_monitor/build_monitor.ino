@@ -15,6 +15,16 @@ const int port = 8080;
 const char *job1 = "/jenkins/job/blue-job/api/json";
 const char *job2 = "/jenkins/job/red-job/api/json";
 
+struct Job {
+  const char** host;
+  const char** uri;
+  uint16_t firstPixel;
+  uint16_t lastPixel;
+};
+
+const Job j1 = { &jenkins, &job1, 1,  5 };
+const Job j2 = { &jenkins, &job2, 6, 15 };
+
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 
 const unsigned long responseTimeout = 15L * 1000L;
@@ -279,7 +289,8 @@ void loop() {
   uint32_t ledColor;
 
   Serial.println();
-  GET(&jenkins, &job1);
+
+  GET(j1.host, j1.uri);
   parseResponse(&client);
 
 #ifdef DEBUG
@@ -296,10 +307,10 @@ void loop() {
   Serial.println(value);
 
   ledColor = ledColorFromJobState(value);
-  setPixels(1, 10, ledColor);
+  setPixels(j1.firstPixel, j1.lastPixel, ledColor);
 
 // Repeat
-  GET(&jenkins, &job2);
+  GET(j2.host, j2.uri);
   parseResponse(&client);
 
 #ifdef DEBUG
@@ -316,7 +327,7 @@ void loop() {
   Serial.println(value);
 
   ledColor = ledColorFromJobState(value);
-  setPixels(11, 20, ledColor);
+  setPixels(j2.firstPixel, j2.lastPixel, ledColor);
 }
 
 // vim:ft=c
