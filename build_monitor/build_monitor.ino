@@ -3,7 +3,6 @@
 
 #include <Adafruit_NeoPixel.h>
 
-#define DEBUG
 
 // Enter the IP address for your controller below.
 // The IP address is dependent on your local network:
@@ -261,8 +260,10 @@ void parseResponse(EthernetClient *client) {
   }
 }
 
-void setPixel(uint16_t pixel, uint32_t color) {
-  strip.setPixelColor(pixel, color);
+void setPixels(uint16_t firstPixel, uint16_t lastPixel, uint32_t color) {
+  for(uint16_t pixel = firstPixel; pixel <= lastPixel; pixel++) {
+    strip.setPixelColor(pixel, color);
+  }
   strip.show();
 }
 
@@ -275,7 +276,7 @@ uint32_t ledColorFromJobState(String jobState) {
 }
 
 void loop() {
-  uint32_t color;
+  uint32_t ledColor;
 
   Serial.println();
   GET(&jenkins, &job1);
@@ -294,10 +295,8 @@ void loop() {
   Serial.print(" => ");
   Serial.println(value);
 
-  color = ledColorFromJobState(value);
-  setPixel(1, color);
-  setPixel(2, color);
-  setPixel(3, color);
+  ledColor = ledColorFromJobState(value);
+  setPixels(1, 10, ledColor);
 
 // Repeat
   GET(&jenkins, &job2);
@@ -316,10 +315,8 @@ void loop() {
   Serial.print(" => ");
   Serial.println(value);
 
-  color = ledColorFromJobState(value);
-  setPixel(4, color);
-  setPixel(5, color);
-  setPixel(6, color);
+  ledColor = ledColorFromJobState(value);
+  setPixels(11, 20, ledColor);
 }
 
 // vim:ft=c
