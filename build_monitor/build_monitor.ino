@@ -91,6 +91,7 @@ void setup() {
   colorWipe(RED  , 50);
   colorWipe(GREEN, 50);
   colorWipe(BLUE , 50);
+  colorWipe(WHITE, 50);
   colorWipe(BLACK, 50);
 }
 
@@ -301,8 +302,8 @@ void loop() {
     setPixel(2, WHITE);
     setPixel(3, WHITE);
   }
-  delay(2500);
 
+// Repeat
   Serial.println();
   Serial.println();
 
