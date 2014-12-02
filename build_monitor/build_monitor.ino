@@ -7,13 +7,13 @@
 // Enter the IP address for your controller below.
 // The IP address is dependent on your local network:
 // IPAddress ip(192,168,178,230);
-IPAddress ip(10,10,11,13);
+// IPAddress ip(10,10,11,13);
 
-const char *jenkins = "10.10.11.16";
+const char *jenkins = "192.168.1.140";
 // const char *jenkins = "slashjenkins.slashhosting.de";
 const int port = 8080;
-const char *job1 = "/jenkins/job/blue-job/api/json";
-const char *job2 = "/jenkins/job/red-job/api/json";
+const char *job1 = "/job/earth-mage_ALL_Build/api/json";
+const char *job2 = "/job/earth-mage_ALL_UnitTests/api/json";
 
 struct Job {
   const char** host;
@@ -31,7 +31,7 @@ const unsigned long responseTimeout = 15L * 1000L;
 const int VERTICAL_TAB = 13;
 
 #define PIN 6
-#define NUM_PIXELS 24
+#define NUM_PIXELS 30
 #define BLACK strip.Color(  0,   0,   0)
 #define WHITE strip.Color( 20,  20,  20)
 #define GREEN strip.Color(  0,  50,   0)
@@ -93,7 +93,7 @@ void setup() {
   }
 
   // start the Ethernet connection and the server:
-  Ethernet.begin(mac, ip);
+  Ethernet.begin(mac);
 
   strip.begin();
   strip.show(); // Initialize all pixels to 'off'
