@@ -278,9 +278,11 @@ void setPixels(uint16_t firstPixel, uint16_t lastPixel, uint32_t color) {
 }
 
 uint32_t ledColorFromJobState(String jobState) {
-  if(String("blue") == value)
+  if(String("blue") == value ||
+     String("blue_anime") == value)
     return GREEN;
-  if(String("red") == value)
+  if(String("red") == value ||
+     String("red_anime") == value)
     return RED;
   return WHITE;
 }
