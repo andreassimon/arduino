@@ -92,8 +92,13 @@ void setup() {
     ; // wait for serial port to connect. Needed for Leonardo only
   }
 
-  // start the Ethernet connection and the server:
-  Ethernet.begin(mac);
+  // start the Ethernet connection:
+  if (Ethernet.begin(mac) == 0) {
+    Serial.println("Failed to configure Ethernet using DHCP");
+    // no point in carrying on, so do nothing forevermore:
+    // try to configure using IP address instead of DHCP:
+    Ethernet.begin(mac, ip);
+  }
 
   strip.begin();
   strip.show(); // Initialize all pixels to 'off'
