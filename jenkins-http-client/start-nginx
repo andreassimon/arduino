@@ -1,0 +1,1 @@
+docker run --rm -ti -v `pwd`:/usr/share/nginx/html:ro --publish 10.10.11.16:8080:80 nginx
