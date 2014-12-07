@@ -361,7 +361,9 @@ const byte PARSER_AFTER_KEY = 4;
 const byte PARSER_BEFORE_VALUE = 5;
 const byte PARSER_IN_DELIMITED_VALUE = 6;
 const byte PARSER_IN_LITERAL_VALUE = 7;
+const byte PARSER_IN_NUMERIC_VALUE = 8;
 const byte PARSER_VALUE_CLOSED = 10;
+const byte PARSER_FINISHED = 11;
 const byte PARSER_ERROR = 255;
 byte parserState;
 
@@ -513,6 +515,18 @@ void processResponseChar(const char c) {
           resetDelimiters();
           processDelimitedValueChar(c);
           break;
+        case '0':
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+          parserState = PARSER_IN_NUMERIC_VALUE;
+          break;
         case 'f':
           expectedLiteralValue = (char*)"false";
           nextExpectedLiteralValueIndex = 1;
@@ -556,16 +570,33 @@ void processResponseChar(const char c) {
     case PARSER_IN_DELIMITED_VALUE:
       processDelimitedValueChar(c);
       return;
-    case PARSER_VALUE_CLOSED:
-      if(',' != c) {
-        Serial.print("ERROR: Parser expected ',', but found '");
-        Serial.print(c);
-        Serial.println("'");
-        parserState = PARSER_ERROR;
-      } else {
+    case PARSER_IN_NUMERIC_VALUE:
+      if('0' <= c && c <= '9') {
+        return;
+      } else if(',' == c) {
         parserState = PARSER_IN_BODY;
       }
       return;
+    case PARSER_VALUE_CLOSED:
+      switch(c) {
+        case ',':
+          parserState = PARSER_IN_BODY;
+          break;
+        case '}':
+          parserState = PARSER_FINISHED;
+          break;
+        default:
+          Serial.print("ERROR: Parser expected ',' or '}', but found '");
+          Serial.print(c);
+          Serial.println("'");
+          parserState = PARSER_ERROR;
+      }
+      return;
+    case PARSER_FINISHED:
+      Serial.print("ERROR: Parser expected no more characters, but found '");
+      Serial.print(c);
+      Serial.println("'");
+      parserState = PARSER_ERROR;
   }
 }
 
