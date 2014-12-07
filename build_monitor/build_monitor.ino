@@ -395,6 +395,18 @@ void processKeyChar(const char c) {
   Serial.print(c);
 }
 
+void processValueChar(const char c) {
+  switch(c) {
+    case '[':
+    case ']':
+    case '{':
+    case '}':
+    case '"':
+      Serial.print(c);
+      return;
+  }
+}
+
 void processResponseChar(const char c) {
   switch(parserState) {
     case PARSER_IN_HEADER:
@@ -416,6 +428,9 @@ void processResponseChar(const char c) {
       } else {
         parserState = PARSER_IN_VALUE;
       }
+      return;
+    case PARSER_IN_VALUE:
+      processValueChar(c);
       return;
   }
 }
