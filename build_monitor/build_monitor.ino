@@ -294,9 +294,11 @@ void parseBody(EthernetClient *client) {
   }
 }
 
+boolean currentRowIsEmpty;
+
 void parseResponse(EthernetClient *client) {
   value = String();
-  boolean currentRowIsEmpty = true;
+  currentRowIsEmpty = true;
 
   unsigned long t = millis(); while((!(*client).available()) && ((millis() - t) < responseTimeout));
   while((*client).connected() || (*client).available()) {
@@ -350,10 +352,38 @@ void printEthernetState(const int line) {
 }
 #endif
 
+
+const int PARSER_IN_HEADER = 0;
+const int PARSER_IN_HEADER__CURRENT_ROW_IS_EMPTY = 1;
+const int PARSER_IN_BODY = 2;
+byte parserState;
+void processResponseChar(char c) {
+  if(parserState == PARSER_IN_BODY) {
+    Serial.print(c);
+    return;
+  }
+
+  if(c == VERTICAL_TAB)
+    return;
+
+  if(c == '\n') {
+    if(currentRowIsEmpty) {
+      parserState = PARSER_IN_BODY;
+      // parseBody(client);
+      return;
+    }
+    currentRowIsEmpty = true;
+    parserState = PARSER_IN_HEADER__CURRENT_ROW_IS_EMPTY;
+  } else {
+    parserState = PARSER_IN_HEADER;
+    currentRowIsEmpty = false;
+  }
+}
+
 void loop() {
   uint32_t ledColor;
 
-  Serial.println();
+  // Serial.println();
 
 //  GET(j1.host, j1.uri);
 //  parseResponse(&client);
@@ -370,16 +400,26 @@ void loop() {
 //  setPixels(j1.firstPixel, j1.lastPixel, ledColor);
 
 // Repeat
-  GET(j2.host, j2.uri);
-  parseResponse(&client);
+  if(!client.connected()) {
+    GET(j2.host, j2.uri);
+    parserState = PARSER_IN_HEADER;
+  }
+  if(client.available()) {
+    c = client.read();
+    processResponseChar(c);
+  }
+  // parseResponse(&client);
 
 #ifdef DEBUG
   printEthernetState(__LINE__);
 #endif
 
-  client.stop();
-  Serial.print(" => ");
-  Serial.println(value);
+  if(!client.connected()) {
+    client.stop();
+    Serial.println();
+    Serial.print(" => ");
+    Serial.println(value);
+  }
 
   ledColor = ledColorFromJobState(value);
   setPixels(j2.firstPixel, j2.lastPixel, ledColor);
