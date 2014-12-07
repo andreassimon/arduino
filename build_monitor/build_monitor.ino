@@ -360,9 +360,7 @@ const byte PARSER_IN_KEY = 3;
 const byte PARSER_AFTER_KEY = 4;
 const byte PARSER_BEFORE_VALUE = 5;
 const byte PARSER_IN_DELIMITED_VALUE = 6;
-const byte PARSER_IN_NULL_VALUE__N = 7;
-const byte PARSER_IN_NULL_VALUE__NU = 8;
-const byte PARSER_IN_NULL_VALUE__NUL = 9;
+const byte PARSER_IN_LITERAL_VALUE = 7;
 const byte PARSER_VALUE_CLOSED = 10;
 const byte PARSER_ERROR = 255;
 byte parserState;
@@ -479,6 +477,9 @@ void processDelimitedValueChar(const char c) {
   }
 }
 
+char* expectedLiteralValue = (char*)malloc(6);
+int nextExpectedLiteralValueIndex = 0;
+
 void processResponseChar(const char c) {
   switch(parserState) {
     case PARSER_IN_HEADER:
@@ -513,7 +514,14 @@ void processResponseChar(const char c) {
           processDelimitedValueChar(c);
           break;
         case 'n':
-          parserState = PARSER_IN_NULL_VALUE__N;
+          expectedLiteralValue = (char*)"null";
+          nextExpectedLiteralValueIndex = 1;
+          parserState = PARSER_IN_LITERAL_VALUE;
+          break;
+        case 't':
+          expectedLiteralValue = (char*)"true";
+          nextExpectedLiteralValueIndex = 1;
+          parserState = PARSER_IN_LITERAL_VALUE;
           break;
         default:
           Serial.print("ERROR: Parser can not detect JSON value starting with '");
@@ -522,31 +530,19 @@ void processResponseChar(const char c) {
           parserState = PARSER_ERROR;
       }
       return;
-    case PARSER_IN_NULL_VALUE__N:
-      if('u' == c) {
-        parserState = PARSER_IN_NULL_VALUE__NU;
+    case PARSER_IN_LITERAL_VALUE:
+      if(expectedLiteralValue[nextExpectedLiteralValueIndex] == c) {
+        nextExpectedLiteralValueIndex++;
+
+        if(nextExpectedLiteralValueIndex >= strlen(expectedLiteralValue)) {
+          parserState = PARSER_VALUE_CLOSED;
+        }
       } else {
-        Serial.print("ERROR: Parser expected 'u' as part of 'null', but found '");
-        Serial.print(c);
-        Serial.println("'");
-        parserState = PARSER_ERROR;
-      }
-      return;
-    case PARSER_IN_NULL_VALUE__NU:
-      if('l' == c) {
-        parserState = PARSER_IN_NULL_VALUE__NUL;
-      } else {
-        Serial.print("ERROR: Parser expected 'l' as part of 'null', but found '");
-        Serial.print(c);
-        Serial.println("'");
-        parserState = PARSER_ERROR;
-      }
-      return;
-    case PARSER_IN_NULL_VALUE__NUL:
-      if('l' == c) {
-        parserState = PARSER_VALUE_CLOSED;
-      } else {
-        Serial.print("ERROR: Parser expected second 'l' as part of 'null', but found '");
+        Serial.print("ERROR: Parser expected '");
+        Serial.print(expectedLiteralValue[nextExpectedLiteralValueIndex]);
+        Serial.print("' as part of literal '");
+        Serial.print(expectedLiteralValue);
+        Serial.print("', but found '");
         Serial.print(c);
         Serial.println("'");
         parserState = PARSER_ERROR;
