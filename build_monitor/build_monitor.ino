@@ -300,7 +300,7 @@ void parseResponse(EthernetClient *client) {
   value = String();
   currentRowIsEmpty = true;
 
-  unsigned long t = millis(); while((!(*client).available()) && ((millis() - t) < responseTimeout));
+  unsigned long t = millis(); while((!(*client).available()) && ((millis() - t) < responseTimeout)) ;
   while((*client).connected() || (*client).available()) {
     if((*client).available()) {
       c = (*client).read();
@@ -357,26 +357,36 @@ const int PARSER_IN_HEADER = 0;
 const int PARSER_IN_HEADER__CURRENT_ROW_IS_EMPTY = 1;
 const int PARSER_IN_BODY = 2;
 byte parserState;
-void processResponseChar(char c) {
-  if(parserState == PARSER_IN_BODY) {
-    Serial.print(c);
-    return;
-  }
 
-  if(c == VERTICAL_TAB)
-    return;
-
-  if(c == '\n') {
-    if(currentRowIsEmpty) {
-      parserState = PARSER_IN_BODY;
-      // parseBody(client);
+void processHeaderChar(const char c) {
+  switch(c) {
+    case VERTICAL_TAB:
       return;
-    }
-    currentRowIsEmpty = true;
-    parserState = PARSER_IN_HEADER__CURRENT_ROW_IS_EMPTY;
-  } else {
-    parserState = PARSER_IN_HEADER;
-    currentRowIsEmpty = false;
+    case '\n':
+      if(parserState == PARSER_IN_HEADER__CURRENT_ROW_IS_EMPTY) {
+        parserState = PARSER_IN_BODY;
+        return;
+      }
+      parserState = PARSER_IN_HEADER__CURRENT_ROW_IS_EMPTY;
+      return;
+    default:
+      parserState = PARSER_IN_HEADER;
+  }
+}
+
+void processBodyChar(const char c) {
+    Serial.print(c);
+}
+
+void processResponseChar(const char c) {
+  switch(parserState) {
+    case PARSER_IN_HEADER:
+    case PARSER_IN_HEADER__CURRENT_ROW_IS_EMPTY:
+      processHeaderChar(c);
+      return;
+    case PARSER_IN_BODY:
+      processBodyChar(c);
+      return;
   }
 }
 
