@@ -356,6 +356,7 @@ void printEthernetState(const int line) {
 const int PARSER_IN_HEADER = 0;
 const int PARSER_IN_HEADER__CURRENT_ROW_IS_EMPTY = 1;
 const int PARSER_IN_BODY = 2;
+const int PARSER_IN_KEY = 3;
 byte parserState;
 
 void processHeaderChar(const char c) {
@@ -375,7 +376,20 @@ void processHeaderChar(const char c) {
 }
 
 void processBodyChar(const char c) {
-    Serial.print(c);
+  switch(c) {
+    case '"':
+      parserState = PARSER_IN_KEY;
+  }
+}
+
+void processKeyChar(const char c) {
+  switch(c) {
+    case '"':
+      Serial.println();
+      parserState = PARSER_IN_BODY;
+      return;
+  }
+  Serial.print(c);
 }
 
 void processResponseChar(const char c) {
@@ -387,6 +401,8 @@ void processResponseChar(const char c) {
     case PARSER_IN_BODY:
       processBodyChar(c);
       return;
+    case PARSER_IN_KEY:
+      processKeyChar(c);
   }
 }
 
