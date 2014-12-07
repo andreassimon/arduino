@@ -395,9 +395,34 @@ void processKeyChar(const char c) {
   Serial.print(c);
 }
 
-String openingDelimiters;
+const int MAX_DELIMITERS = 20;
+char* openingDelimiters = (char*)malloc(MAX_DELIMITERS);
+int lastDelimiterIndex = -1;
+
+void resetDelimiters() {
+  lastDelimiterIndex = -1;
+}
+
+void pushDelimiter(const char c) {
+  lastDelimiterIndex++;
+  if(lastDelimiterIndex >= MAX_DELIMITERS) {
+    Serial.print("ERROR: The maximum number of delimiters (");
+    Serial.print(MAX_DELIMITERS);
+    Serial.print(") is exceeded, you try to push '");
+    Serial.print(c);
+    Serial.println("'");
+    parserState = PARSER_ERROR;
+    return;
+  }
+  openingDelimiters[lastDelimiterIndex] = c;
+}
+
 void popDelimiter() {
-  openingDelimiters.setCharAt(openingDelimiters.length()-1, '\0');
+  lastDelimiterIndex--;
+}
+
+char peekDelimiter() {
+  return openingDelimiters[lastDelimiterIndex];
 }
 
 void processValueChar(const char c) {
@@ -405,31 +430,43 @@ void processValueChar(const char c) {
   switch(c) {
     case '[':
     case '{':
-      openingDelimiters += c;
+      pushDelimiter(c);
       break;
     case '"':
-      lastDelimiter = openingDelimiters.charAt(openingDelimiters.length()-1);
+      lastDelimiter = peekDelimiter();
       if('"' == lastDelimiter) {
         popDelimiter();
       } else {
-        openingDelimiters += c;
+        pushDelimiter(c);
       }
       break;
     case ']':
-//      char lastDelimiter = valueDelimiters[valueDelimiters.length()-1];
-//      if('[' == lastDelimiter) {
-//        // popDelimiter();
-//      } else {
-//        Serial.print("ERROR: Parser expected last delimiter to be '");
-//        Serial.print(lastDelimiter);
-//        Serial.println("'");
-//        parserState = PARSER_ERROR;
-//      }
-//      break;
+      lastDelimiter = peekDelimiter();
+      if('[' == lastDelimiter) {
+        popDelimiter();
+      } else {
+        Serial.print("'");
+        Serial.print(openingDelimiters);
+        Serial.println("'");
+        Serial.print("ERROR: Parser expected last opening delimiter to be '[', but was '");
+        Serial.print(lastDelimiter);
+        Serial.println("'");
+        parserState = PARSER_ERROR;
+      }
+      break;
     case '}':
+      lastDelimiter = peekDelimiter();
+      if('{' == lastDelimiter) {
+        popDelimiter();
+      } else {
+        Serial.print("ERROR: Parser expected last opening delimiter to be '{', but was '");
+        Serial.print(lastDelimiter);
+        Serial.println("'");
+        parserState = PARSER_ERROR;
+      }
       break;
   }
-  Serial.println(openingDelimiters);
+  // Serial.println(openingDelimiters);
 }
 
 void processResponseChar(const char c) {
@@ -452,7 +489,7 @@ void processResponseChar(const char c) {
         parserState = PARSER_ERROR;
       } else {
         parserState = PARSER_IN_VALUE;
-        openingDelimiters = String();
+        resetDelimiters();
       }
       return;
     case PARSER_IN_VALUE:
