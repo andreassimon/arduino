@@ -395,16 +395,41 @@ void processKeyChar(const char c) {
   Serial.print(c);
 }
 
+String openingDelimiters;
+void popDelimiter() {
+  openingDelimiters.setCharAt(openingDelimiters.length()-1, '\0');
+}
+
 void processValueChar(const char c) {
+  char lastDelimiter;
   switch(c) {
     case '[':
-    case ']':
     case '{':
-    case '}':
+      openingDelimiters += c;
+      break;
     case '"':
-      Serial.print(c);
-      return;
+      lastDelimiter = openingDelimiters.charAt(openingDelimiters.length()-1);
+      if('"' == lastDelimiter) {
+        popDelimiter();
+      } else {
+        openingDelimiters += c;
+      }
+      break;
+    case ']':
+//      char lastDelimiter = valueDelimiters[valueDelimiters.length()-1];
+//      if('[' == lastDelimiter) {
+//        // popDelimiter();
+//      } else {
+//        Serial.print("ERROR: Parser expected last delimiter to be '");
+//        Serial.print(lastDelimiter);
+//        Serial.println("'");
+//        parserState = PARSER_ERROR;
+//      }
+//      break;
+    case '}':
+      break;
   }
+  Serial.println(openingDelimiters);
 }
 
 void processResponseChar(const char c) {
@@ -427,6 +452,7 @@ void processResponseChar(const char c) {
         parserState = PARSER_ERROR;
       } else {
         parserState = PARSER_IN_VALUE;
+        openingDelimiters = String();
       }
       return;
     case PARSER_IN_VALUE:
