@@ -6,23 +6,28 @@
 
 // #define DEBUG
 
+struct Job {
+  const char* host;
+  int port;
+  const char* uri;
+  uint16_t firstPixel;
+  uint16_t lastPixel;
+};
+
 // Enter the IP address for your controller below.
 // The IP address is dependent on your local network:
 // IPAddress ip(192,168,178,230);
 
 // DEV / TEST
-const char *jenkins = "10.10.11.16";
-const int port = 8080;
-const char *job1 = "/job/earth-mage_ALL_Build/api/json";
-const char *job2 = "/job/earth-mage_ALL_UnitTests/api/json";
+const char* jenkins = "10.10.11.16";
 const IPAddress ip(10,10,11,13);
 
 // Gruenspar
 /*
   const char *jenkins = "192.168.1.140";
   const int port = 8080;
-  const char *job1 = "/job/earth-mage_ALL_Build/api/json";
-  const char *job2 = "/job/earth-mage_ALL_UnitTests/api/json";
+  const char *uri1 = "/job/earth-mage_ALL_Build/api/json";
+  const char *uri2 = "/job/earth-mage_ALL_UnitTests/api/json";
 */
 
 // Slashjenkins
@@ -30,15 +35,14 @@ const IPAddress ip(10,10,11,13);
   const char *jenkins = "slashjenkins.slashhosting.de";
 */
 
-struct Job {
-  const char** host;
-  const char** uri;
-  uint16_t firstPixel;
-  uint16_t lastPixel;
-};
+const Job job1 = { jenkins, 8080, "/job/earth-mage_ALL_Build/api/json",  0, 14 };
+const Job job2 = { jenkins, 8080, "/job/earth-mage_ALL_UnitTests/api/json", 15, 29 };
 
-const Job j1 = { &jenkins, &job1,  0, 14 };
-const Job j2 = { &jenkins, &job2, 15, 29 };
+const Job jobs[] = { job1, job2 };
+const int numberOfJobs = sizeof(jobs) / sizeof(Job);
+
+Job currentJob = job2;
+int currentJobIndex = 0;
 
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 
@@ -64,21 +68,21 @@ const int VERTICAL_TAB = 13;
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_PIXELS, PIN, NEO_GRB + NEO_KHZ800);
 EthernetClient client;
 
-void GET(const char **host, const char **uri) {
-  int connStatus = client.connect(*host, port);
+void GET(const char *host, const int port, const char *uri) {
+  int connStatus = client.connect(host, port);
   if(connStatus >= 0) {
     Serial.print("GET http://");
-    Serial.print(*host);
+    Serial.print(host);
     Serial.print(":");
     Serial.print(port);
-    Serial.print(*uri);
+    Serial.print(uri);
     Serial.println();
 
     client.print("GET ");
-    client.print(*uri);
+    client.print(uri);
     client.println(" HTTP/1.0");
     client.print("Host: ");
-    client.println(*host);
+    client.println(host);
     client.println("User-Agent: Arduino Uno Build Monitor");
     client.println("Connection: close");
     client.println();
@@ -506,12 +510,23 @@ void loop() {
     Serial.print(" => ");
     Serial.println(color);
     ledColor = ledColorFromJobState(color);
-    Serial.print(" ledColor => ");
-    Serial.println(ledColor);
-    setPixels(j2.firstPixel, j2.lastPixel, ledColor);
+    Serial.print(" setPixels( ");
+    Serial.print(currentJob.firstPixel);
+    Serial.print(", ");
+    Serial.print(currentJob.lastPixel);
+    Serial.print(", ");
+    Serial.print(ledColor);
+    Serial.println(" )");
+    setPixels(currentJob.firstPixel, currentJob.lastPixel, ledColor);
     Serial.println();
 
-    GET(j2.host, j2.uri);
+    currentJobIndex++;
+    if(currentJobIndex >= numberOfJobs) {
+      currentJobIndex = 0;
+    }
+    currentJob = jobs[currentJobIndex];
+
+    GET(currentJob.host, currentJob.port, currentJob.uri);
     parserState = PARSER_IN_HEADER;
   }
   if(client.available()) {
