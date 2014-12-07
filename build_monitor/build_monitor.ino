@@ -513,6 +513,11 @@ void processResponseChar(const char c) {
           resetDelimiters();
           processDelimitedValueChar(c);
           break;
+        case 'f':
+          expectedLiteralValue = (char*)"false";
+          nextExpectedLiteralValueIndex = 1;
+          parserState = PARSER_IN_LITERAL_VALUE;
+          break;
         case 'n':
           expectedLiteralValue = (char*)"null";
           nextExpectedLiteralValueIndex = 1;
