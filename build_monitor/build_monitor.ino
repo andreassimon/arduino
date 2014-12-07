@@ -390,14 +390,22 @@ void processBodyChar(const char c) {
   }
 }
 
+const int MAX_KEY_LEN = 5;
+char currentKey[MAX_KEY_LEN];
+char currentKeyIndex = 0;
+
 void processKeyChar(const char c) {
   switch(c) {
     case '"':
-      Serial.println();
+      currentKey[currentKeyIndex] = '\0';
+      Serial.println(currentKey);
       parserState = PARSER_AFTER_KEY;
       return;
   }
-  Serial.print(c);
+  if(currentKeyIndex < MAX_KEY_LEN) {
+    currentKey[currentKeyIndex] = c;
+    currentKeyIndex++;
+  }
 }
 
 const int MAX_DELIMITERS = 20;
