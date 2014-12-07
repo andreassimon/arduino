@@ -355,19 +355,19 @@ void loop() {
 
   Serial.println();
 
-  GET(j1.host, j1.uri);
-  parseResponse(&client);
+//  GET(j1.host, j1.uri);
+//  parseResponse(&client);
 
 #ifdef DEBUG
   printEthernetState(__LINE__);
 #endif
 
-  client.stop();
-  Serial.print(" => ");
-  Serial.println(value);
+//  client.stop();
+//  Serial.print(" => ");
+//  Serial.println(value);
 
-  ledColor = ledColorFromJobState(value);
-  setPixels(j1.firstPixel, j1.lastPixel, ledColor);
+//  ledColor = ledColorFromJobState(value);
+//  setPixels(j1.firstPixel, j1.lastPixel, ledColor);
 
 // Repeat
   GET(j2.host, j2.uri);
