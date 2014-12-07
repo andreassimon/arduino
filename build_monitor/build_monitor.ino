@@ -339,6 +339,17 @@ uint32_t ledColorFromJobState(String jobState) {
   return WHITE;
 }
 
+#ifdef DEBUG
+void printEthernetState(const int line) {
+  Serial.print(line);
+  Serial.print(": client.available() => ");
+  Serial.println(client.available());
+  Serial.print(line);
+  Serial.print(": client.connected() => ");
+  Serial.println(client.connected());
+}
+#endif
+
 void loop() {
   uint32_t ledColor;
 
@@ -348,12 +359,7 @@ void loop() {
   parseResponse(&client);
 
 #ifdef DEBUG
-  Serial.print(__LINE__);
-  Serial.print(": client.available() => ");
-  Serial.println(client.available());
-  Serial.print(__LINE__);
-  Serial.print(": client.connected() => ");
-  Serial.println(client.connected());
+  printEthernetState(__LINE__);
 #endif
 
   client.stop();
@@ -368,12 +374,7 @@ void loop() {
   parseResponse(&client);
 
 #ifdef DEBUG
-  Serial.print(__LINE__);
-  Serial.print(": client.available() => ");
-  Serial.println(client.available());
-  Serial.print(__LINE__);
-  Serial.print(": client.connected() => ");
-  Serial.println(client.connected());
+  printEthernetState(__LINE__);
 #endif
 
   client.stop();
