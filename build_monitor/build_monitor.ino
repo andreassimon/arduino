@@ -495,36 +495,8 @@ void processResponseChar(const char c) {
   }
 }
 
+uint32_t ledColor;
 void loop() {
-  uint32_t ledColor;
-
-  // Serial.println();
-
-//  GET(j1.host, j1.uri);
-//  parseResponse(&client);
-
-#ifdef DEBUG
-  printEthernetState(__LINE__);
-#endif
-
-//  client.stop();
-//  Serial.print(" => ");
-//  Serial.println(value);
-
-//  ledColor = ledColorFromJobState(value);
-//  setPixels(j1.firstPixel, j1.lastPixel, ledColor);
-
-// Repeat
-  if(!client.connected()) {
-    GET(j2.host, j2.uri);
-    parserState = PARSER_IN_HEADER;
-  }
-  if(client.available()) {
-    c = client.read();
-    processResponseChar(c);
-  }
-  // parseResponse(&client);
-
 #ifdef DEBUG
   printEthernetState(__LINE__);
 #endif
@@ -538,8 +510,18 @@ void loop() {
     Serial.println(ledColor);
     setPixels(j2.firstPixel, j2.lastPixel, ledColor);
     Serial.println();
+
+    GET(j2.host, j2.uri);
+    parserState = PARSER_IN_HEADER;
+  }
+  if(client.available()) {
+    c = client.read();
+    processResponseChar(c);
   }
 
+#ifdef DEBUG
+  printEthernetState(__LINE__);
+#endif
 }
 
 // vim:ft=c
