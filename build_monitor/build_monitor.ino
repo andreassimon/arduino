@@ -18,27 +18,24 @@ struct Job {
 // The IP address is dependent on your local network:
 // IPAddress ip(192,168,178,230);
 
-// DEV / TEST
-const char* jenkins = "10.10.11.16";
-const IPAddress ip(10,10,11,13);
-
-// Gruenspar
 /*
+  // DEV / TEST
+  const IPAddress ip(10,10,11,13);
+  const char* jenkins = "10.10.11.16";
+  const Job jobs[] = {
+    { jenkins, 8080, "/job/earth-mage_ALL_Build/api/json",  0, 14 },
+    { jenkins, 8080, "/job/earth-mage_ALL_UnitTests/api/json", 15, 29 }
+  };
+*/
+
+  // Gruenspar
+  const IPAddress ip(192,168,1,128);
   const char *jenkins = "192.168.1.140";
-  const int port = 8080;
-  const char *uri1 = "/job/earth-mage_ALL_Build/api/json";
-  const char *uri2 = "/job/earth-mage_ALL_UnitTests/api/json";
-*/
+  const Job jobs[] = {
+    { jenkins, 8080, "/job/earth-mage_ALL_Build/api/json",  0, 14 },
+    { jenkins, 8080, "/job/earth-mage_ALL_UnitTests/api/json", 15, 29 }
+  };
 
-// Slashjenkins
-/*
-  const char *jenkins = "slashjenkins.slashhosting.de";
-*/
-
-const Job jobs[] = {
-  { jenkins, 8080, "/job/earth-mage_ALL_Build/api/json",  0, 14 },
-  { jenkins, 8080, "/job/earth-mage_ALL_UnitTests/api/json", 15, 29 }
-};
 const int numberOfJobs = sizeof(jobs) / sizeof(Job);
 
 int currentJobIndex = 0;
@@ -46,7 +43,6 @@ Job currentJob = jobs[currentJobIndex];
 
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 
-const unsigned long responseTimeout = 15L * 1000L;
 const int VERTICAL_TAB = 13;
 
 #define PIN 6
@@ -114,8 +110,8 @@ void setup() {
   // start the Ethernet connection:
   if (Ethernet.begin(mac) == 0) {
     Serial.println("Failed to configure Ethernet using DHCP");
-    // no point in carrying on, so do nothing forevermore:
-    // try to configure using IP address instead of DHCP:
+    Serial.print("Try now to connect with IP ");
+    Serial.println(ip);
     Ethernet.begin(mac, ip);
   }
 
