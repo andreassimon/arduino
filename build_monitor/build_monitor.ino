@@ -358,12 +358,15 @@ const byte PARSER_IN_HEADER__CURRENT_ROW_IS_EMPTY = 1;
 const byte PARSER_IN_BODY = 2;
 const byte PARSER_IN_KEY = 3;
 const byte PARSER_AFTER_KEY = 4;
-const byte PARSER_BEFORE_VALUE = 5;
-const byte PARSER_IN_DELIMITED_VALUE = 6;
-const byte PARSER_IN_LITERAL_VALUE = 7;
-const byte PARSER_IN_NUMERIC_VALUE = 8;
-const byte PARSER_VALUE_CLOSED = 10;
-const byte PARSER_FINISHED = 11;
+const byte PARSER_AFTER_COLOR_KEY = 5;
+const byte PARSER_BEFORE_VALUE = 6;
+const byte PARSER_BEFORE_COLOR_VALUE = 7;
+const byte PARSER_IN_DELIMITED_VALUE = 8;
+const byte PARSER_IN_COLOR_VALUE = 9;
+const byte PARSER_IN_LITERAL_VALUE = 10;
+const byte PARSER_IN_NUMERIC_VALUE = 11;
+const byte PARSER_VALUE_CLOSED = 12;
+const byte PARSER_FINISHED = 13;
 const byte PARSER_ERROR = 255;
 byte parserState;
 
@@ -398,8 +401,11 @@ void processKeyChar(const char c) {
   switch(c) {
     case '"':
       currentKey[currentKeyIndex] = '\0';
-      Serial.println(currentKey);
-      parserState = PARSER_AFTER_KEY;
+      if(strncmp("color", currentKey, strlen("color")) == 0) {
+        parserState = PARSER_AFTER_COLOR_KEY;
+      } else {
+        parserState = PARSER_AFTER_KEY;
+      }
       return;
   }
   if(currentKeyIndex < MAX_KEY_LEN) {
@@ -490,6 +496,17 @@ void processDelimitedValueChar(const char c) {
 char* expectedLiteralValue = (char*)malloc(6);
 int nextExpectedLiteralValueIndex = 0;
 
+String color = String("");
+void processColorChar(const char c) {
+  if('"' == c) {
+    Serial.print(" color => ");
+    Serial.println(color);
+    parserState = PARSER_VALUE_CLOSED;
+    return;
+  }
+  color += c;
+}
+
 void processResponseChar(const char c) {
   switch(parserState) {
     case PARSER_IN_HEADER:
@@ -511,6 +528,30 @@ void processResponseChar(const char c) {
         return;
       }
       parserState = PARSER_BEFORE_VALUE;
+      return;
+    case PARSER_AFTER_COLOR_KEY:
+      if(':' != c) {
+        Serial.print("ERROR: Parser expected ':', but found '");
+        Serial.print(c);
+        Serial.println("'");
+        parserState = PARSER_ERROR;
+        return;
+      }
+      parserState = PARSER_BEFORE_COLOR_VALUE;
+      return;
+    case PARSER_BEFORE_COLOR_VALUE:
+      if('"' == c) {
+        parserState = PARSER_IN_COLOR_VALUE;
+        color = String("");
+      } else {
+        Serial.print("ERROR: Parser expected '\"', but found '");
+        Serial.print(c);
+        Serial.println("'");
+        parserState = PARSER_ERROR;
+      }
+      return;
+    case PARSER_IN_COLOR_VALUE:
+      processColorChar(c);
       return;
     case PARSER_BEFORE_VALUE:
       switch(c) {
