@@ -35,14 +35,14 @@ const IPAddress ip(10,10,11,13);
   const char *jenkins = "slashjenkins.slashhosting.de";
 */
 
-const Job job1 = { jenkins, 8080, "/job/earth-mage_ALL_Build/api/json",  0, 14 };
-const Job job2 = { jenkins, 8080, "/job/earth-mage_ALL_UnitTests/api/json", 15, 29 };
-
-const Job jobs[] = { job1, job2 };
+const Job jobs[] = {
+  { jenkins, 8080, "/job/earth-mage_ALL_Build/api/json",  0, 14 },
+  { jenkins, 8080, "/job/earth-mage_ALL_UnitTests/api/json", 15, 29 }
+};
 const int numberOfJobs = sizeof(jobs) / sizeof(Job);
 
-Job currentJob = job2;
 int currentJobIndex = 0;
+Job currentJob = jobs[currentJobIndex];
 
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 
