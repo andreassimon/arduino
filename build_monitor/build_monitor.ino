@@ -353,10 +353,13 @@ void printEthernetState(const int line) {
 #endif
 
 
-const int PARSER_IN_HEADER = 0;
-const int PARSER_IN_HEADER__CURRENT_ROW_IS_EMPTY = 1;
-const int PARSER_IN_BODY = 2;
-const int PARSER_IN_KEY = 3;
+const byte PARSER_IN_HEADER = 0;
+const byte PARSER_IN_HEADER__CURRENT_ROW_IS_EMPTY = 1;
+const byte PARSER_IN_BODY = 2;
+const byte PARSER_IN_KEY = 3;
+const byte PARSER_AFTER_KEY = 4;
+const byte PARSER_IN_VALUE = 5;
+const byte PARSER_ERROR = 255;
 byte parserState;
 
 void processHeaderChar(const char c) {
@@ -386,7 +389,7 @@ void processKeyChar(const char c) {
   switch(c) {
     case '"':
       Serial.println();
-      parserState = PARSER_IN_BODY;
+      parserState = PARSER_AFTER_KEY;
       return;
   }
   Serial.print(c);
@@ -403,6 +406,17 @@ void processResponseChar(const char c) {
       return;
     case PARSER_IN_KEY:
       processKeyChar(c);
+      return;
+    case PARSER_AFTER_KEY:
+      if(':' != c) {
+        Serial.print("ERROR: Parser expected ':', but found '");
+        Serial.print(c);
+        Serial.println("'");
+        parserState = PARSER_ERROR;
+      } else {
+        parserState = PARSER_IN_VALUE;
+      }
+      return;
   }
 }
 
