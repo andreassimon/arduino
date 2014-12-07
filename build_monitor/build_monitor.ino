@@ -4,16 +4,31 @@
 #include <Adafruit_NeoPixel.h>
 
 
+// #define DEBUG
+
 // Enter the IP address for your controller below.
 // The IP address is dependent on your local network:
 // IPAddress ip(192,168,178,230);
-// IPAddress ip(10,10,11,13);
 
-const char *jenkins = "192.168.1.140";
-// const char *jenkins = "slashjenkins.slashhosting.de";
+// DEV / TEST
+const char *jenkins = "10.10.11.16";
 const int port = 8080;
 const char *job1 = "/job/earth-mage_ALL_Build/api/json";
 const char *job2 = "/job/earth-mage_ALL_UnitTests/api/json";
+const IPAddress ip(10,10,11,13);
+
+// Gruenspar
+/*
+  const char *jenkins = "192.168.1.140";
+  const int port = 8080;
+  const char *job1 = "/job/earth-mage_ALL_Build/api/json";
+  const char *job2 = "/job/earth-mage_ALL_UnitTests/api/json";
+*/
+
+// Slashjenkins
+/*
+  const char *jenkins = "slashjenkins.slashhosting.de";
+*/
 
 struct Job {
   const char** host;
@@ -22,8 +37,8 @@ struct Job {
   uint16_t lastPixel;
 };
 
-const Job j1 = { &jenkins, &job1, 1,  5 };
-const Job j2 = { &jenkins, &job2, 6, 15 };
+const Job j1 = { &jenkins, &job1,  0, 14 };
+const Job j2 = { &jenkins, &job2, 15, 29 };
 
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 
