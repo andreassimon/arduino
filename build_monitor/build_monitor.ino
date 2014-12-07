@@ -359,6 +359,7 @@ const byte PARSER_IN_BODY = 2;
 const byte PARSER_IN_KEY = 3;
 const byte PARSER_AFTER_KEY = 4;
 const byte PARSER_IN_VALUE = 5;
+const byte PARSER_VALUE_CLOSED = 6;
 const byte PARSER_ERROR = 255;
 byte parserState;
 
@@ -403,6 +404,10 @@ void resetDelimiters() {
   lastDelimiterIndex = -1;
 }
 
+boolean noDelimitersOpen() {
+  return lastDelimiterIndex < 0;
+}
+
 void pushDelimiter(const char c) {
   lastDelimiterIndex++;
   if(lastDelimiterIndex >= MAX_DELIMITERS) {
@@ -433,8 +438,7 @@ void processValueChar(const char c) {
       pushDelimiter(c);
       break;
     case '"':
-      lastDelimiter = peekDelimiter();
-      if('"' == lastDelimiter) {
+      if('"' == peekDelimiter()) {
         popDelimiter();
       } else {
         pushDelimiter(c);
@@ -466,7 +470,9 @@ void processValueChar(const char c) {
       }
       break;
   }
-  // Serial.println(openingDelimiters);
+  if(noDelimitersOpen()) {
+    parserState = PARSER_VALUE_CLOSED;
+  }
 }
 
 void processResponseChar(const char c) {
@@ -494,6 +500,16 @@ void processResponseChar(const char c) {
       return;
     case PARSER_IN_VALUE:
       processValueChar(c);
+      return;
+    case PARSER_VALUE_CLOSED:
+      if(',' != c) {
+        Serial.print("ERROR: Parser expected ',', but found '");
+        Serial.print(c);
+        Serial.println("'");
+        parserState = PARSER_ERROR;
+      } else {
+        parserState = PARSER_IN_BODY;
+      }
       return;
   }
 }
