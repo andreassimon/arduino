@@ -141,6 +141,10 @@ void parseList(EthernetClient *client) {
         parseKey(client);
         break;
       }
+    } else {
+      // Serial.print(__LINE__);
+      // Serial.println(" :: Waiting for input from Ethernet");
+      // delay(250);
     }
   }
 }
@@ -159,6 +163,10 @@ void parseObject(EthernetClient *client) {
         parseKey(client);
         break;
       }
+    } else {
+      Serial.print(__LINE__);
+      Serial.println(" :: Waiting for input from Ethernet");
+      delay(250);
     }
   }
 }
@@ -179,6 +187,10 @@ void parseColor(EthernetClient *client) {
         break;
       }
       value += c;
+    } else {
+      Serial.print(__LINE__);
+      Serial.println(" :: Waiting for input from Ethernet");
+      delay(250);
     }
   }
 }
@@ -198,6 +210,10 @@ void parseString(EthernetClient *client) {
         parseKey(client);
         break;
       }
+    } else {
+      Serial.print(__LINE__);
+      Serial.println(" :: Waiting for input from Ethernet");
+      delay(250);
     }
   }
 }
@@ -213,6 +229,10 @@ void parseLiteral(EthernetClient *client, char openingChar) {
         parseKey(client);
         break;
       }
+    } else {
+      Serial.print(__LINE__);
+      Serial.println(" :: Waiting for input from Ethernet");
+      delay(250);
     }
   }
 }
@@ -249,6 +269,10 @@ void parseKey(EthernetClient *client) {
         break;
       }
       key += c;
+    } else {
+      Serial.print(__LINE__);
+      Serial.println(" :: Waiting for input from Ethernet");
+      delay(250);
     }
   }
 }
@@ -262,6 +286,10 @@ void parseBody(EthernetClient *client) {
         parseKey(client);
         break;
       }
+    } else {
+      Serial.print(__LINE__);
+      Serial.println(" :: Waiting for input from Ethernet");
+      delay(250);
     }
   }
 }
@@ -286,6 +314,10 @@ void parseResponse(EthernetClient *client) {
       } else {
         currentRowIsEmpty = false;
       }
+    } else {
+      Serial.print(__LINE__);
+      Serial.println(" :: Waiting for input from Ethernet");
+      delay(250);
     }
   }
 }
