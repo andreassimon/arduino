@@ -332,11 +332,11 @@ void setPixels(uint16_t firstPixel, uint16_t lastPixel, uint32_t color) {
 }
 
 uint32_t ledColorFromJobState(String jobState) {
-  if(String("blue") == value ||
-     String("blue_anime") == value)
+  if(String("blue") == jobState ||
+     String("blue_anime") == jobState)
     return GREEN;
-  if(String("red") == value ||
-     String("red_anime") == value)
+  if(String("red") == jobState ||
+     String("red_anime") == jobState)
     return RED;
   return WHITE;
 }
@@ -499,8 +499,6 @@ int nextExpectedLiteralValueIndex = 0;
 String color = String("");
 void processColorChar(const char c) {
   if('"' == c) {
-    Serial.print(" color => ");
-    Serial.println(color);
     parserState = PARSER_VALUE_CLOSED;
     return;
   }
@@ -685,13 +683,15 @@ void loop() {
 
   if(!client.connected()) {
     client.stop();
-    Serial.println();
     Serial.print(" => ");
-    Serial.println(value);
+    Serial.println(color);
+    ledColor = ledColorFromJobState(color);
+    Serial.print(" ledColor => ");
+    Serial.println(ledColor);
+    setPixels(j2.firstPixel, j2.lastPixel, ledColor);
+    Serial.println();
   }
 
-  ledColor = ledColorFromJobState(value);
-  setPixels(j2.firstPixel, j2.lastPixel, ledColor);
 }
 
 // vim:ft=c
