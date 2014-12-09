@@ -125,52 +125,6 @@ void setup() {
 }
 
 char c;
-void parseKey(EthernetClient *client);
-
-void parseList(EthernetClient *client) {
-  while((*client).connected() || (*client).available()) {
-    if((*client).available()) {
-      c = (*client).read();
-      if(c == ']') {
-        if((*client).available()) {
-          c = (*client).read(); // skip ','
-        }
-        if((*client).available()) {
-          c = (*client).read(); // skip '"'
-        }
-        parseKey(client);
-        break;
-      }
-    } else {
-      // Serial.print(__LINE__);
-      // Serial.println(" :: Waiting for input from Ethernet");
-      // delay(250);
-    }
-  }
-}
-
-void parseObject(EthernetClient *client) {
-  while((*client).connected() || (*client).available()) {
-    if((*client).available()) {
-      c = (*client).read();
-      if(c == '}') {
-        if((*client).available()) {
-          c = (*client).read(); // skip ','
-        }
-        if((*client).available()) {
-          c = (*client).read(); // skip '"'
-        }
-        parseKey(client);
-        break;
-      }
-    } else {
-      Serial.print(__LINE__);
-      Serial.println(" :: Waiting for input from Ethernet");
-      delay(250);
-    }
-  }
-}
-
 
 void setPixels(uint16_t firstPixel, uint16_t lastPixel, uint32_t color) {
   for(uint16_t pixel = firstPixel; pixel <= lastPixel; pixel++) {
