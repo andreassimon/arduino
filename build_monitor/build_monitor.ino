@@ -100,6 +100,326 @@ void colorWipe(uint32_t c, uint8_t wait) {
   }
 }
 
+const byte PARSER_IN_HEADER = 0;
+const byte PARSER_IN_HEADER__CURRENT_ROW_IS_EMPTY = 1;
+const byte PARSER_IN_BODY = 2;
+const byte PARSER_IN_KEY = 3;
+const byte PARSER_AFTER_KEY = 4;
+const byte PARSER_AFTER_COLOR_KEY = 5;
+const byte PARSER_BEFORE_VALUE = 6;
+const byte PARSER_BEFORE_COLOR_VALUE = 7;
+const byte PARSER_IN_DELIMITED_VALUE = 8;
+const byte PARSER_IN_COLOR_VALUE = 9;
+const byte PARSER_IN_LITERAL_VALUE = 10;
+const byte PARSER_IN_NUMERIC_VALUE = 11;
+const byte PARSER_VALUE_CLOSED = 12;
+const byte PARSER_FINISHED = 13;
+const byte PARSER_ERROR = 255;
+
+const unsigned int MAX_KEY_LEN = 5;
+const signed int MAX_DELIMITERS = 20;
+
+class JenkinsJobParser {
+
+  byte parserState;
+  char currentKey[MAX_KEY_LEN];
+  unsigned int currentKeyIndex;
+  char* openingDelimiters;
+  int lastDelimiterIndex;
+  char* expectedLiteralValue;
+  unsigned int nextExpectedLiteralValueIndex;
+  String color;
+
+  public:
+  JenkinsJobParser() {
+    currentKeyIndex = 0;
+
+    openingDelimiters = (char*)malloc(MAX_DELIMITERS);
+    lastDelimiterIndex = -1;
+
+    expectedLiteralValue = (char*)malloc(6);
+    nextExpectedLiteralValueIndex = 0;
+
+    color = String("");
+  }
+
+  String getColor() {
+    return color;
+  }
+
+  void processHeaderChar(const char c) {
+    switch(c) {
+      case VERTICAL_TAB:
+        return;
+      case '\n':
+        if(parserState == PARSER_IN_HEADER__CURRENT_ROW_IS_EMPTY) {
+          parserState = PARSER_IN_BODY;
+          return;
+        }
+        parserState = PARSER_IN_HEADER__CURRENT_ROW_IS_EMPTY;
+        return;
+      default:
+        parserState = PARSER_IN_HEADER;
+    }
+  }
+
+  void processBodyChar(const char c) {
+    switch(c) {
+      case '"':
+        parserState = PARSER_IN_KEY;
+    }
+  }
+
+  void processKeyChar(const unsigned char c) {
+    switch(c) {
+      case '"':
+        currentKey[currentKeyIndex] = '\0';
+        if(strncmp("color", currentKey, strlen("color")) == 0) {
+          parserState = PARSER_AFTER_COLOR_KEY;
+        } else {
+          parserState = PARSER_AFTER_KEY;
+        }
+        return;
+    }
+    if(currentKeyIndex < MAX_KEY_LEN) {
+      currentKey[currentKeyIndex] = c;
+      currentKeyIndex++;
+    }
+  }
+
+  void pushDelimiter(const char c) {
+    lastDelimiterIndex++;
+    if(lastDelimiterIndex >= MAX_DELIMITERS) {
+      Serial.print("ERROR: The maximum number of delimiters (");
+      Serial.print(MAX_DELIMITERS);
+      Serial.print(") is exceeded, you try to push '");
+      Serial.print(c);
+      Serial.println("'");
+      parserState = PARSER_ERROR;
+      return;
+    }
+    openingDelimiters[lastDelimiterIndex] = c;
+  }
+
+  void processDelimitedValueChar(const char c) {
+    char lastDelimiter;
+    switch(c) {
+      case '[':
+      case '{':
+        pushDelimiter(c);
+        break;
+      case '"':
+        if('"' == peekDelimiter()) {
+          popDelimiter();
+        } else {
+          pushDelimiter(c);
+        }
+        break;
+      case ']':
+        lastDelimiter = peekDelimiter();
+        if('[' == lastDelimiter) {
+          popDelimiter();
+        } else {
+          Serial.print("'");
+          Serial.print(openingDelimiters);
+          Serial.println("'");
+          Serial.print("ERROR: Parser expected last opening delimiter to be '[', but was '");
+          Serial.print(lastDelimiter);
+          Serial.println("'");
+          parserState = PARSER_ERROR;
+        }
+        break;
+      case '}':
+        lastDelimiter = peekDelimiter();
+        if('{' == lastDelimiter) {
+          popDelimiter();
+        } else {
+          Serial.print("ERROR: Parser expected last opening delimiter to be '{', but was '");
+          Serial.print(lastDelimiter);
+          Serial.println("'");
+          parserState = PARSER_ERROR;
+        }
+        break;
+    }
+    if(noDelimitersOpen()) {
+      parserState = PARSER_VALUE_CLOSED;
+    }
+  }
+
+  void processColorChar(const char c) {
+    if('"' == c) {
+      parserState = PARSER_VALUE_CLOSED;
+      return;
+    }
+    color += c;
+  }
+
+  void processResponseChar(const char c) {
+    switch(parserState) {
+      case PARSER_IN_HEADER:
+      case PARSER_IN_HEADER__CURRENT_ROW_IS_EMPTY:
+        processHeaderChar(c);
+        return;
+      case PARSER_IN_BODY:
+        processBodyChar(c);
+        return;
+      case PARSER_IN_KEY:
+        processKeyChar(c);
+        return;
+      case PARSER_AFTER_KEY:
+        if(':' != c) {
+          Serial.print("ERROR: Parser expected ':', but found '");
+          Serial.print(c);
+          Serial.println("'");
+          parserState = PARSER_ERROR;
+          return;
+        }
+        parserState = PARSER_BEFORE_VALUE;
+        return;
+      case PARSER_AFTER_COLOR_KEY:
+        if(':' != c) {
+          Serial.print("ERROR: Parser expected ':', but found '");
+          Serial.print(c);
+          Serial.println("'");
+          parserState = PARSER_ERROR;
+          return;
+        }
+        parserState = PARSER_BEFORE_COLOR_VALUE;
+        return;
+      case PARSER_BEFORE_COLOR_VALUE:
+        if('"' == c) {
+          parserState = PARSER_IN_COLOR_VALUE;
+          color = String("");
+        } else {
+          Serial.print("ERROR: Parser expected '\"', but found '");
+          Serial.print(c);
+          Serial.println("'");
+          parserState = PARSER_ERROR;
+        }
+        return;
+      case PARSER_IN_COLOR_VALUE:
+        processColorChar(c);
+        return;
+      case PARSER_BEFORE_VALUE:
+        switch(c) {
+          case '{':
+          case '[':
+          case '}':
+          case ']':
+          case '"':
+            parserState = PARSER_IN_DELIMITED_VALUE;
+            resetDelimiters();
+            processDelimitedValueChar(c);
+            break;
+          case '0':
+          case '1':
+          case '2':
+          case '3':
+          case '4':
+          case '5':
+          case '6':
+          case '7':
+          case '8':
+          case '9':
+            parserState = PARSER_IN_NUMERIC_VALUE;
+            break;
+          case 'f':
+            expectedLiteralValue = (char*)"false";
+            nextExpectedLiteralValueIndex = 1;
+            parserState = PARSER_IN_LITERAL_VALUE;
+            break;
+          case 'n':
+            expectedLiteralValue = (char*)"null";
+            nextExpectedLiteralValueIndex = 1;
+            parserState = PARSER_IN_LITERAL_VALUE;
+            break;
+          case 't':
+            expectedLiteralValue = (char*)"true";
+            nextExpectedLiteralValueIndex = 1;
+            parserState = PARSER_IN_LITERAL_VALUE;
+            break;
+          default:
+            Serial.print("ERROR: Parser can not detect JSON value starting with '");
+            Serial.print(c);
+            Serial.println("'");
+            parserState = PARSER_ERROR;
+        }
+        return;
+      case PARSER_IN_LITERAL_VALUE:
+        if(expectedLiteralValue[nextExpectedLiteralValueIndex] == c) {
+          nextExpectedLiteralValueIndex++;
+
+          if(nextExpectedLiteralValueIndex >= strlen(expectedLiteralValue)) {
+            parserState = PARSER_VALUE_CLOSED;
+          }
+        } else {
+          Serial.print("ERROR: Parser expected '");
+          Serial.print(expectedLiteralValue[nextExpectedLiteralValueIndex]);
+          Serial.print("' as part of literal '");
+          Serial.print(expectedLiteralValue);
+          Serial.print("', but found '");
+          Serial.print(c);
+          Serial.println("'");
+          parserState = PARSER_ERROR;
+        }
+        return;
+      case PARSER_IN_DELIMITED_VALUE:
+        processDelimitedValueChar(c);
+        return;
+      case PARSER_IN_NUMERIC_VALUE:
+        if('0' <= c && c <= '9') {
+          return;
+        } else if(',' == c) {
+          parserState = PARSER_IN_BODY;
+        }
+        return;
+      case PARSER_VALUE_CLOSED:
+        switch(c) {
+          case ',':
+            parserState = PARSER_IN_BODY;
+            break;
+          case '}':
+            parserState = PARSER_FINISHED;
+            break;
+          default:
+            Serial.print("ERROR: Parser expected ',' or '}', but found '");
+            Serial.print(c);
+            Serial.println("'");
+            parserState = PARSER_ERROR;
+        }
+        return;
+      case PARSER_FINISHED:
+        Serial.print("ERROR: Parser expected no more characters, but found '");
+        Serial.print(c);
+        Serial.println("'");
+        parserState = PARSER_ERROR;
+    }
+  }
+
+  void reset() {
+    parserState = PARSER_IN_HEADER;
+  }
+
+  void resetDelimiters() {
+    lastDelimiterIndex = -1;
+  }
+
+  boolean noDelimitersOpen() {
+    return lastDelimiterIndex < 0;
+  }
+
+  void popDelimiter() {
+    lastDelimiterIndex--;
+  }
+
+  char peekDelimiter() {
+    return openingDelimiters[lastDelimiterIndex];
+  }
+
+};
+
+JenkinsJobParser parser;
+
 void setup() {
   // Open serial communications and wait for port to open:
   Serial.begin(9600);
@@ -117,6 +437,7 @@ void setup() {
 
   strip.begin();
   strip.show(); // Initialize all pixels to 'off'
+  parser = JenkinsJobParser();
   colorWipe(RED  , 50);
   colorWipe(GREEN, 50);
   colorWipe(BLUE , 50);
@@ -154,301 +475,6 @@ void printEthernetState(const int line) {
 }
 #endif
 
-
-const byte PARSER_IN_HEADER = 0;
-const byte PARSER_IN_HEADER__CURRENT_ROW_IS_EMPTY = 1;
-const byte PARSER_IN_BODY = 2;
-const byte PARSER_IN_KEY = 3;
-const byte PARSER_AFTER_KEY = 4;
-const byte PARSER_AFTER_COLOR_KEY = 5;
-const byte PARSER_BEFORE_VALUE = 6;
-const byte PARSER_BEFORE_COLOR_VALUE = 7;
-const byte PARSER_IN_DELIMITED_VALUE = 8;
-const byte PARSER_IN_COLOR_VALUE = 9;
-const byte PARSER_IN_LITERAL_VALUE = 10;
-const byte PARSER_IN_NUMERIC_VALUE = 11;
-const byte PARSER_VALUE_CLOSED = 12;
-const byte PARSER_FINISHED = 13;
-const byte PARSER_ERROR = 255;
-byte parserState;
-
-void processHeaderChar(const char c) {
-  switch(c) {
-    case VERTICAL_TAB:
-      return;
-    case '\n':
-      if(parserState == PARSER_IN_HEADER__CURRENT_ROW_IS_EMPTY) {
-        parserState = PARSER_IN_BODY;
-        return;
-      }
-      parserState = PARSER_IN_HEADER__CURRENT_ROW_IS_EMPTY;
-      return;
-    default:
-      parserState = PARSER_IN_HEADER;
-  }
-}
-
-void processBodyChar(const char c) {
-  switch(c) {
-    case '"':
-      parserState = PARSER_IN_KEY;
-  }
-}
-
-const unsigned int MAX_KEY_LEN = 5;
-char currentKey[MAX_KEY_LEN];
-unsigned int currentKeyIndex = 0;
-
-void processKeyChar(const unsigned char c) {
-  switch(c) {
-    case '"':
-      currentKey[currentKeyIndex] = '\0';
-      if(strncmp("color", currentKey, strlen("color")) == 0) {
-        parserState = PARSER_AFTER_COLOR_KEY;
-      } else {
-        parserState = PARSER_AFTER_KEY;
-      }
-      return;
-  }
-  if(currentKeyIndex < MAX_KEY_LEN) {
-    currentKey[currentKeyIndex] = c;
-    currentKeyIndex++;
-  }
-}
-
-const int MAX_DELIMITERS = 20;
-char* openingDelimiters = (char*)malloc(MAX_DELIMITERS);
-int lastDelimiterIndex = -1;
-
-void resetDelimiters() {
-  lastDelimiterIndex = -1;
-}
-
-boolean noDelimitersOpen() {
-  return lastDelimiterIndex < 0;
-}
-
-void pushDelimiter(const char c) {
-  lastDelimiterIndex++;
-  if(lastDelimiterIndex >= MAX_DELIMITERS) {
-    Serial.print("ERROR: The maximum number of delimiters (");
-    Serial.print(MAX_DELIMITERS);
-    Serial.print(") is exceeded, you try to push '");
-    Serial.print(c);
-    Serial.println("'");
-    parserState = PARSER_ERROR;
-    return;
-  }
-  openingDelimiters[lastDelimiterIndex] = c;
-}
-
-void popDelimiter() {
-  lastDelimiterIndex--;
-}
-
-char peekDelimiter() {
-  return openingDelimiters[lastDelimiterIndex];
-}
-
-void processDelimitedValueChar(const char c) {
-  char lastDelimiter;
-  switch(c) {
-    case '[':
-    case '{':
-      pushDelimiter(c);
-      break;
-    case '"':
-      if('"' == peekDelimiter()) {
-        popDelimiter();
-      } else {
-        pushDelimiter(c);
-      }
-      break;
-    case ']':
-      lastDelimiter = peekDelimiter();
-      if('[' == lastDelimiter) {
-        popDelimiter();
-      } else {
-        Serial.print("'");
-        Serial.print(openingDelimiters);
-        Serial.println("'");
-        Serial.print("ERROR: Parser expected last opening delimiter to be '[', but was '");
-        Serial.print(lastDelimiter);
-        Serial.println("'");
-        parserState = PARSER_ERROR;
-      }
-      break;
-    case '}':
-      lastDelimiter = peekDelimiter();
-      if('{' == lastDelimiter) {
-        popDelimiter();
-      } else {
-        Serial.print("ERROR: Parser expected last opening delimiter to be '{', but was '");
-        Serial.print(lastDelimiter);
-        Serial.println("'");
-        parserState = PARSER_ERROR;
-      }
-      break;
-  }
-  if(noDelimitersOpen()) {
-    parserState = PARSER_VALUE_CLOSED;
-  }
-}
-
-char* expectedLiteralValue = (char*)malloc(6);
-unsigned int nextExpectedLiteralValueIndex = 0;
-
-String color = String("");
-void processColorChar(const char c) {
-  if('"' == c) {
-    parserState = PARSER_VALUE_CLOSED;
-    return;
-  }
-  color += c;
-}
-
-void processResponseChar(const char c) {
-  switch(parserState) {
-    case PARSER_IN_HEADER:
-    case PARSER_IN_HEADER__CURRENT_ROW_IS_EMPTY:
-      processHeaderChar(c);
-      return;
-    case PARSER_IN_BODY:
-      processBodyChar(c);
-      return;
-    case PARSER_IN_KEY:
-      processKeyChar(c);
-      return;
-    case PARSER_AFTER_KEY:
-      if(':' != c) {
-        Serial.print("ERROR: Parser expected ':', but found '");
-        Serial.print(c);
-        Serial.println("'");
-        parserState = PARSER_ERROR;
-        return;
-      }
-      parserState = PARSER_BEFORE_VALUE;
-      return;
-    case PARSER_AFTER_COLOR_KEY:
-      if(':' != c) {
-        Serial.print("ERROR: Parser expected ':', but found '");
-        Serial.print(c);
-        Serial.println("'");
-        parserState = PARSER_ERROR;
-        return;
-      }
-      parserState = PARSER_BEFORE_COLOR_VALUE;
-      return;
-    case PARSER_BEFORE_COLOR_VALUE:
-      if('"' == c) {
-        parserState = PARSER_IN_COLOR_VALUE;
-        color = String("");
-      } else {
-        Serial.print("ERROR: Parser expected '\"', but found '");
-        Serial.print(c);
-        Serial.println("'");
-        parserState = PARSER_ERROR;
-      }
-      return;
-    case PARSER_IN_COLOR_VALUE:
-      processColorChar(c);
-      return;
-    case PARSER_BEFORE_VALUE:
-      switch(c) {
-        case '{':
-        case '[':
-        case '}':
-        case ']':
-        case '"':
-          parserState = PARSER_IN_DELIMITED_VALUE;
-          resetDelimiters();
-          processDelimitedValueChar(c);
-          break;
-        case '0':
-        case '1':
-        case '2':
-        case '3':
-        case '4':
-        case '5':
-        case '6':
-        case '7':
-        case '8':
-        case '9':
-          parserState = PARSER_IN_NUMERIC_VALUE;
-          break;
-        case 'f':
-          expectedLiteralValue = (char*)"false";
-          nextExpectedLiteralValueIndex = 1;
-          parserState = PARSER_IN_LITERAL_VALUE;
-          break;
-        case 'n':
-          expectedLiteralValue = (char*)"null";
-          nextExpectedLiteralValueIndex = 1;
-          parserState = PARSER_IN_LITERAL_VALUE;
-          break;
-        case 't':
-          expectedLiteralValue = (char*)"true";
-          nextExpectedLiteralValueIndex = 1;
-          parserState = PARSER_IN_LITERAL_VALUE;
-          break;
-        default:
-          Serial.print("ERROR: Parser can not detect JSON value starting with '");
-          Serial.print(c);
-          Serial.println("'");
-          parserState = PARSER_ERROR;
-      }
-      return;
-    case PARSER_IN_LITERAL_VALUE:
-      if(expectedLiteralValue[nextExpectedLiteralValueIndex] == c) {
-        nextExpectedLiteralValueIndex++;
-
-        if(nextExpectedLiteralValueIndex >= strlen(expectedLiteralValue)) {
-          parserState = PARSER_VALUE_CLOSED;
-        }
-      } else {
-        Serial.print("ERROR: Parser expected '");
-        Serial.print(expectedLiteralValue[nextExpectedLiteralValueIndex]);
-        Serial.print("' as part of literal '");
-        Serial.print(expectedLiteralValue);
-        Serial.print("', but found '");
-        Serial.print(c);
-        Serial.println("'");
-        parserState = PARSER_ERROR;
-      }
-      return;
-    case PARSER_IN_DELIMITED_VALUE:
-      processDelimitedValueChar(c);
-      return;
-    case PARSER_IN_NUMERIC_VALUE:
-      if('0' <= c && c <= '9') {
-        return;
-      } else if(',' == c) {
-        parserState = PARSER_IN_BODY;
-      }
-      return;
-    case PARSER_VALUE_CLOSED:
-      switch(c) {
-        case ',':
-          parserState = PARSER_IN_BODY;
-          break;
-        case '}':
-          parserState = PARSER_FINISHED;
-          break;
-        default:
-          Serial.print("ERROR: Parser expected ',' or '}', but found '");
-          Serial.print(c);
-          Serial.println("'");
-          parserState = PARSER_ERROR;
-      }
-      return;
-    case PARSER_FINISHED:
-      Serial.print("ERROR: Parser expected no more characters, but found '");
-      Serial.print(c);
-      Serial.println("'");
-      parserState = PARSER_ERROR;
-  }
-}
-
 uint32_t ledColor;
 void loop() {
 #ifdef DEBUG
@@ -458,8 +484,8 @@ void loop() {
   if(!client.connected()) {
     client.stop();
     Serial.print(" => ");
-    Serial.println(color);
-    ledColor = ledColorFromJobState(color);
+    Serial.println(parser.getColor());
+    ledColor = ledColorFromJobState(parser.getColor());
     Serial.print(" setPixels( ");
     Serial.print(currentJob.firstPixel);
     Serial.print(", ");
@@ -477,11 +503,11 @@ void loop() {
     currentJob = jobs[currentJobIndex];
 
     GET(currentJob.host, currentJob.port, currentJob.uri);
-    parserState = PARSER_IN_HEADER;
+    parser.reset();
   }
   if(client.available()) {
     c = client.read();
-    processResponseChar(c);
+    parser.processResponseChar(c);
   }
 
 #ifdef DEBUG
@@ -489,4 +515,4 @@ void loop() {
 #endif
 }
 
-// vim:ft=c
+// vim:ft=cpp
