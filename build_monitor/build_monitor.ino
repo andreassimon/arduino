@@ -18,16 +18,17 @@ struct Job {
 // The IP address is dependent on your local network:
 // IPAddress ip(192,168,178,230);
 
-/*
   // DEV / TEST
   const IPAddress ip(10,10,11,13);
   const char* jenkins = "10.10.11.16";
   const Job jobs[] = {
-    { jenkins, 8080, "/job/earth-mage_ALL_Build/api/json",  0, 14 },
-    { jenkins, 8080, "/job/earth-mage_ALL_UnitTests/api/json", 15, 29 }
+    { jenkins, 8080, "/job/blue/api/json",  0,  9 },
+    { jenkins, 8080, "/job/blue-animated/api/json", 10, 19 },
+    { jenkins, 8080, "/job/red/api/json", 20, 29 },
+    { jenkins, 8080, "/job/red-animated/api/json", 30, 39 }
   };
-*/
 
+/*
   // Gruenspar
   const IPAddress ip(192,168,1,128);
   const char *jenkins = "192.168.1.140";
@@ -35,6 +36,7 @@ struct Job {
     { jenkins, 8080, "/job/earth-mage_ALL_Build/api/json",  0, 14 },
     { jenkins, 8080, "/job/earth-mage_ALL_UnitTests/api/json", 15, 29 }
   };
+*/
 
 const int numberOfJobs = sizeof(jobs) / sizeof(Job);
 
@@ -46,7 +48,7 @@ byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 const int VERTICAL_TAB = 13;
 
 #define PIN 6
-#define NUM_PIXELS 30
+#define NUM_PIXELS 40
 #define BLACK strip.Color(  0,   0,   0)
 #define WHITE strip.Color( 20,  20,  20)
 #define GREEN strip.Color(  0,  50,   0)
@@ -427,16 +429,19 @@ void setup() {
     ; // wait for serial port to connect. Needed for Leonardo only
   }
 
-  // start the Ethernet connection:
-  if (Ethernet.begin(mac) == 0) {
-    Serial.println("Failed to configure Ethernet using DHCP");
-    Serial.print("Try now to connect with IP ");
-    Serial.println(ip);
-    Ethernet.begin(mac, ip);
-  }
-
   strip.begin();
   strip.show(); // Initialize all pixels to 'off'
+
+  // start the Ethernet connection:
+//  if (Ethernet.begin(mac) == 0) {
+//    Serial.println("Failed to configure Ethernet using DHCP");
+//    Serial.print("Try now to connect with IP ");
+//    Serial.println(ip);
+    Ethernet.begin(mac, ip);
+//  }
+  Serial.print("Connected with IP ");
+  Serial.println(Ethernet.localIP());
+
   parser = JenkinsJobParser();
   colorWipe(RED  , 50);
   colorWipe(GREEN, 50);
