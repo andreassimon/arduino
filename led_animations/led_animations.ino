@@ -106,42 +106,60 @@ class Animations_Pulsating {
   }
 };
 
+const byte PAUSING = 0,
+           SHOOTING = 1;
+
 class Animations_Fireworks {
+
   Adafruit_NeoPixel* strip;
   unsigned int firstPixel, lastPixel;
+  byte state;
   int colorRed;
-  unsigned long lastChange, period, delta;
+  unsigned long lastChange, period, pauseStart, pauseTime;
   uint32_t color;
-  int pixel;
+  unsigned int shootingPixel;
 
   public:
   Animations_Fireworks(Adafruit_NeoPixel* strip, unsigned int first, unsigned int last) {
     (*this).strip = strip;
     firstPixel = first;
     lastPixel = last;
-    pixel = first;
+    state = SHOOTING;
+    shootingPixel = first;
     period = 50;
+    pauseTime = 2000ul;
     colorRed = 0;
-    delta = 1;
     lastChange = millis();
   }
 
   void update() {
     color = (*strip).Color(128,0,0);
-    if(millis() - lastChange > period) {
-      lastChange = millis();
-      (*strip).setPixelColor(pixel, BLACK);
-      pixel++;
-      if(pixel > lastPixel) {
-        pixel = firstPixel;
-      }
+    switch(state) {
+      case PAUSING:
+        if(millis() - pauseStart > pauseTime) {
+          shootingPixel = firstPixel;
+          state = SHOOTING;
+        }
+        break;
+      case SHOOTING:
+        if(millis() - lastChange > period) {
+          lastChange = millis();
+          (*strip).setPixelColor(shootingPixel, BLACK);
+          shootingPixel++;
+          if(shootingPixel > lastPixel) {
+            pauseStart = millis();
+            state = PAUSING;
+          }
 
-      (*strip).setPixelColor(pixel, color);
-      (*strip).show();
+          if(shootingPixel <= lastPixel) {
+            (*strip).setPixelColor(shootingPixel, color);
+          }
+          (*strip).show();
+        }
+        break;
     }
   }
 };
-
 
 Animations_Blink blink1 = Animations_Blink(&strip, 35, 36);
 Animations_Blink blink2 = Animations_Blink(&strip, 38, 39);
