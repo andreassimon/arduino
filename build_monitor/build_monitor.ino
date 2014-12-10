@@ -124,6 +124,7 @@ const signed int MAX_DELIMITERS = 20;
 class JenkinsJobParser {
 
   byte parserState;
+  unsigned int parsedCharacters;
   char currentKey[MAX_KEY_LEN];
   unsigned int currentKeyIndex;
   char* openingDelimiters;
@@ -257,6 +258,7 @@ class JenkinsJobParser {
   }
 
   void processResponseChar(const char c) {
+    parsedCharacters++;
     switch(parserState) {
       case PARSER_IN_HEADER:
       case PARSER_IN_HEADER__CURRENT_ROW_IS_EMPTY:
@@ -270,9 +272,17 @@ class JenkinsJobParser {
         return;
       case PARSER_AFTER_KEY:
         if(':' != c) {
-          Serial.print("ERROR: Parser expected ':', but found '");
+          Serial.print("ERROR @ char ");
+          Serial.print(parsedCharacters);
+          Serial.print(": Parser expected '");
+          Serial.print(':');
+          Serial.print("' (");
+          Serial.print((int)':', HEX);
+          Serial.print("), but found '");
           Serial.print(c);
-          Serial.println("'");
+          Serial.print("' (");
+          Serial.print((int)c, HEX);
+          Serial.println(")");
           parserState = PARSER_ERROR;
           return;
         }
@@ -280,9 +290,17 @@ class JenkinsJobParser {
         return;
       case PARSER_AFTER_COLOR_KEY:
         if(':' != c) {
-          Serial.print("ERROR: Parser expected ':', but found '");
+          Serial.print("ERROR @ char ");
+          Serial.print(parsedCharacters);
+          Serial.print(": Parser expected '");
+          Serial.print(':');
+          Serial.print("' (");
+          Serial.print((int)':', HEX);
+          Serial.print("), but found '");
           Serial.print(c);
-          Serial.println("'");
+          Serial.print("' (");
+          Serial.print((int)c, HEX);
+          Serial.println(")");
           parserState = PARSER_ERROR;
           return;
         }
@@ -400,6 +418,7 @@ class JenkinsJobParser {
 
   void reset() {
     parserState = PARSER_IN_HEADER;
+    parsedCharacters = 0;
   }
 
   void resetDelimiters() {
