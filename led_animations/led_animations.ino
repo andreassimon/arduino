@@ -67,21 +67,19 @@ class Animations_Pulsating {
   Adafruit_NeoPixel* strip;
   unsigned int firstPixel, lastPixel;
   int colorRed;
-  int period,
-      delta,
-      lowerBoundary,
+  int lowerBoundary,
       upperBoundary;
 
-  unsigned long lastChange;
+  unsigned long lastChange, period, delta;
 
   public:
-  Animations_Pulsating(Adafruit_NeoPixel* neoStrip, unsigned int first, unsigned int last) {
-    strip = neoStrip;
+  Animations_Pulsating(Adafruit_NeoPixel* strip, unsigned int first, unsigned int last, int lowerBoundary, int upperBoundary) {
+    (*this).strip = strip;
     firstPixel = first;
     lastPixel = last;
     period = 5;
-    lowerBoundary = 50;
-    upperBoundary = 200;
+    (*this).lowerBoundary = lowerBoundary;
+    (*this).upperBoundary = upperBoundary;
     colorRed = lowerBoundary;
     delta = 1;
     lastChange = millis();
@@ -100,7 +98,6 @@ class Animations_Pulsating {
         delta = -delta;
       }
       uint32_t color = (*strip).Color(colorRed, 0, 0);
-      Serial.println(color, HEX);
       for(uint16_t pixel = firstPixel; pixel <= lastPixel; pixel++) {
         (*strip).setPixelColor(pixel, color);
       }
@@ -112,14 +109,12 @@ class Animations_Pulsating {
 Animations_Blink blink1 = Animations_Blink(&strip, 35, 36);
 Animations_Blink blink2 = Animations_Blink(&strip, 38, 39);
 
-Animations_Pulsating pulsating = Animations_Pulsating(&strip, 7, 17);
+Animations_Pulsating pulsating = Animations_Pulsating(&strip, 23, 32, 100, 200);
 
 void loop() {
-  // Blink
   blink1.update();
   blink2.update();
 
-  // Pulsating
   pulsating.update();
 
   // Fireworks
