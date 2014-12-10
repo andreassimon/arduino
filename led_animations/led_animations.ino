@@ -20,17 +20,20 @@ void setup() {
   strip.show(); // Initialize all pixels to 'off'
 }
 
-uint32_t color = RED;
-
 const byte OFF = 0,
            ON  = 1;
 
 class Animations_Blink {
+  int firstPixel, lastPixel;
   byte state;
+  uint32_t color;
+
   unsigned long lastChange;
 
   public:
-  Animations_Blink() {
+  Animations_Blink(int first, int last) {
+    firstPixel = first;
+    lastPixel = last;
     state = OFF;
     lastChange = millis();
   }
@@ -50,11 +53,7 @@ class Animations_Blink {
         color = BLACK;
       }
 
-      for(uint16_t pixel = 0; pixel <= 9; pixel++) {
-        Serial.print("Setting pixel ");
-        Serial.print(pixel);
-        Serial.print(" to ");
-        Serial.println(color, HEX);
+      for(uint16_t pixel = firstPixel; pixel <= lastPixel; pixel++) {
         strip.setPixelColor(pixel, color);
       }
       strip.show();
@@ -62,12 +61,13 @@ class Animations_Blink {
   }
 };
 
-Animations_Blink animation = Animations_Blink();
+Animations_Blink blink1 = Animations_Blink(7, 9);
+Animations_Blink blink2 = Animations_Blink(12, 14);
 
 void loop() {
   // Blink
-  animation.update();
-
+  blink1.update();
+  blink2.update();
 
   // Fireworks
   // Pulsating
