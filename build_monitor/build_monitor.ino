@@ -195,11 +195,11 @@ void processBodyChar(const char c) {
   }
 }
 
-const int MAX_KEY_LEN = 5;
+const unsigned int MAX_KEY_LEN = 5;
 char currentKey[MAX_KEY_LEN];
-char currentKeyIndex = 0;
+unsigned int currentKeyIndex = 0;
 
-void processKeyChar(const char c) {
+void processKeyChar(const unsigned char c) {
   switch(c) {
     case '"':
       currentKey[currentKeyIndex] = '\0';
@@ -296,7 +296,7 @@ void processDelimitedValueChar(const char c) {
 }
 
 char* expectedLiteralValue = (char*)malloc(6);
-int nextExpectedLiteralValueIndex = 0;
+unsigned int nextExpectedLiteralValueIndex = 0;
 
 String color = String("");
 void processColorChar(const char c) {
