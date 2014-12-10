@@ -24,35 +24,49 @@ uint32_t color = RED;
 
 const byte OFF = 0,
            ON  = 1;
-byte state = OFF;
-unsigned long lastChange;
+
+class Animations_Blink {
+  byte state;
+  unsigned long lastChange;
+
+  public:
+  Animations_Blink() {
+    state = OFF;
+    lastChange = millis();
+  }
+
+  void update() {
+    if(millis() - lastChange > 500) {
+      lastChange = millis();
+      if(state == OFF) {
+        state = ON;
+      } else {
+        state = OFF;
+      }
+
+      if(state == ON) {
+        color = RED;
+      } else {
+        color = BLACK;
+      }
+
+      for(uint16_t pixel = 0; pixel <= 9; pixel++) {
+        Serial.print("Setting pixel ");
+        Serial.print(pixel);
+        Serial.print(" to ");
+        Serial.println(color, HEX);
+        strip.setPixelColor(pixel, color);
+      }
+      strip.show();
+    }
+  }
+};
+
+Animations_Blink animation = Animations_Blink();
 
 void loop() {
   // Blink
-  if(millis() - lastChange > 500) {
-    lastChange = millis();
-    if(state == OFF) {
-      state = ON;
-    } else {
-      state = OFF;
-    }
-
-    if(state == ON) {
-      color = RED;
-    } else {
-      color = BLACK;
-    }
-
-    for(uint16_t pixel = 0; pixel <= 9; pixel++) {
-      Serial.print("Setting pixel ");
-      Serial.print(pixel);
-      Serial.print(" to ");
-      Serial.println(color, HEX);
-      strip.setPixelColor(pixel, color);
-    }
-    strip.setPixelColor(10, RED);
-    strip.show();
-  }
+  animation.update();
 
 
   // Fireworks
