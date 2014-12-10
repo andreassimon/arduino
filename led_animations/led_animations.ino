@@ -8,6 +8,17 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_PIXELS, PIN, NEO_GRB + NEO_KHZ80
 const uint32_t BLACK = strip.Color(0, 0, 0);
 const uint32_t RED = strip.Color(128, 0, 0);
 
+#include "lib/Animations/Blink.cpp"
+#include "lib/Animations/Pulsating.cpp"
+#include "lib/Animations/Fireworks.cpp"
+
+Animations::Blink blink1 = Animations::Blink(&strip, 35, 36, RED, BLACK);
+Animations::Blink blink2 = Animations::Blink(&strip, 38, 39, RED, BLACK);
+
+Animations::Pulsating pulsating = Animations::Pulsating(&strip, 23, 32, 100, 200);
+
+Animations::Fireworks fireworks = Animations::Fireworks(&strip, 7, 17);
+
 void setup() {
   // Open serial communications and wait for port to open:
   Serial.begin(9600);
@@ -19,17 +30,6 @@ void setup() {
   strip.begin();
   strip.show(); // Initialize all pixels to 'off'
 }
-
-#include "lib/Animations/Blink.cpp"
-#include "lib/Animations/Pulsating.cpp"
-#include "lib/Animations/Fireworks.cpp"
-
-Animations::Blink blink1 = Animations::Blink(&strip, 35, 36, RED, BLACK);
-Animations::Blink blink2 = Animations::Blink(&strip, 38, 39, RED, BLACK);
-
-Animations::Pulsating pulsating = Animations::Pulsating(&strip, 23, 32, 100, 200);
-
-Animations::Fireworks fireworks = Animations::Fireworks(&strip, 7, 17);
 
 void loop() {
   blink1.update();
