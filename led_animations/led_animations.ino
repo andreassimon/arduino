@@ -20,50 +20,10 @@ void setup() {
   strip.show(); // Initialize all pixels to 'off'
 }
 
-const byte OFF = 0,
-           ON  = 1;
+#include "lib/Animations/Blink.cpp"
 
-class Animations_Blink {
-  Adafruit_NeoPixel* strip;
-  unsigned int firstPixel, lastPixel;
-  byte state;
-  uint32_t color;
-
-  unsigned long lastChange;
-
-  public:
-  Animations_Blink(Adafruit_NeoPixel* neoStrip, unsigned int first, unsigned int last) {
-    strip = neoStrip;
-    firstPixel = first;
-    lastPixel = last;
-    state = OFF;
-    lastChange = millis();
-  }
-
-  void update() {
-    if(millis() - lastChange > 500) {
-      lastChange = millis();
-      if(state == OFF) {
-        state = ON;
-      } else {
-        state = OFF;
-      }
-
-      if(state == ON) {
-        color = RED;
-      } else {
-        color = BLACK;
-      }
-
-      for(uint16_t pixel = firstPixel; pixel <= lastPixel; pixel++) {
-        (*strip).setPixelColor(pixel, color);
-      }
-      (*strip).show();
-    }
-  }
-};
-
-class Animations_Pulsating {
+namespace Animations {
+class Pulsating {
   Adafruit_NeoPixel* strip;
   unsigned int firstPixel, lastPixel;
   int colorRed;
@@ -73,7 +33,7 @@ class Animations_Pulsating {
   unsigned long lastChange, period, delta;
 
   public:
-  Animations_Pulsating(Adafruit_NeoPixel* strip, unsigned int first, unsigned int last, int lowerBoundary, int upperBoundary) {
+  Pulsating(Adafruit_NeoPixel* strip, unsigned int first, unsigned int last, int lowerBoundary, int upperBoundary) {
     (*this).strip = strip;
     firstPixel = first;
     lastPixel = last;
@@ -105,11 +65,13 @@ class Animations_Pulsating {
     }
   }
 };
+}
 
+namespace Animations {
 const byte PAUSING = 0,
            SHOOTING = 1;
 
-class Animations_Fireworks {
+class Fireworks {
 
   Adafruit_NeoPixel* strip;
   unsigned int firstPixel, lastPixel;
@@ -120,7 +82,7 @@ class Animations_Fireworks {
   unsigned int shootingPixel;
 
   public:
-  Animations_Fireworks(Adafruit_NeoPixel* strip, unsigned int first, unsigned int last) {
+  Fireworks(Adafruit_NeoPixel* strip, unsigned int first, unsigned int last) {
     (*this).strip = strip;
     firstPixel = first;
     lastPixel = last;
@@ -160,13 +122,14 @@ class Animations_Fireworks {
     }
   }
 };
+}
 
-Animations_Blink blink1 = Animations_Blink(&strip, 35, 36);
-Animations_Blink blink2 = Animations_Blink(&strip, 38, 39);
+Animations::Blink blink1 = Animations::Blink(&strip, 35, 36);
+Animations::Blink blink2 = Animations::Blink(&strip, 38, 39);
 
-Animations_Pulsating pulsating = Animations_Pulsating(&strip, 23, 32, 100, 200);
+Animations::Pulsating pulsating = Animations::Pulsating(&strip, 23, 32, 100, 200);
 
-Animations_Fireworks fireworks = Animations_Fireworks(&strip, 7, 17);
+Animations::Fireworks fireworks = Animations::Fireworks(&strip, 7, 17);
 
 void loop() {
   blink1.update();
