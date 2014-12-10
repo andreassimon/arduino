@@ -18,6 +18,6 @@ PROGRAMMER = arduino
 # Where to find header files and libraries.
 INC_DIRS = ./inc
 LIB_DIRS = $(addprefix $(PWD)/lib/, $(LIBS))
-LIBS = Adafruit_NeoPixel
+LIBS = Adafruit_NeoPixel Animations
 
 include ../Makefile.master

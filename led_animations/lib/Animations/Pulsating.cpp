@@ -1,3 +1,6 @@
+#include <Arduino.h>
+#include <Adafruit_NeoPixel.h>
+
 namespace Animations {
   class Pulsating {
     Adafruit_NeoPixel* strip;

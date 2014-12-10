@@ -8,17 +8,19 @@ namespace Animations {
     Adafruit_NeoPixel* strip;
     unsigned int firstPixel, lastPixel;
     byte state;
-    uint32_t color;
+    uint32_t color, firstColor, secondColor;
 
     unsigned long lastChange;
 
     public:
-    Blink(Adafruit_NeoPixel* neoStrip, unsigned int first, unsigned int last) {
+    Blink(Adafruit_NeoPixel* neoStrip, unsigned int first, unsigned int last, uint32_t firstColor, uint32_t secondColor) {
       strip = neoStrip;
       firstPixel = first;
       lastPixel = last;
       state = OFF;
       lastChange = millis();
+      (*this).firstColor = firstColor;
+      (*this).secondColor = secondColor;
     }
 
     void update() {
@@ -31,9 +33,9 @@ namespace Animations {
         }
 
         if(state == ON) {
-          color = RED;
+          color = firstColor;
         } else {
-          color = BLACK;
+          color = secondColor;
         }
 
         for(uint16_t pixel = firstPixel; pixel <= lastPixel; pixel++) {

@@ -1,3 +1,6 @@
+#include <Arduino.h>
+#include <Adafruit_NeoPixel.h>
+
 namespace Animations {
 
   const byte PAUSING = 0,

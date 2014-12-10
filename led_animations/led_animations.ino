@@ -24,8 +24,8 @@ void setup() {
 #include "lib/Animations/Pulsating.cpp"
 #include "lib/Animations/Fireworks.cpp"
 
-Animations::Blink blink1 = Animations::Blink(&strip, 35, 36);
-Animations::Blink blink2 = Animations::Blink(&strip, 38, 39);
+Animations::Blink blink1 = Animations::Blink(&strip, 35, 36, RED, BLACK);
+Animations::Blink blink2 = Animations::Blink(&strip, 38, 39, RED, BLACK);
 
 Animations::Pulsating pulsating = Animations::Pulsating(&strip, 23, 32, 100, 200);
 
