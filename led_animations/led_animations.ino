@@ -24,14 +24,16 @@ const byte OFF = 0,
            ON  = 1;
 
 class Animations_Blink {
-  int firstPixel, lastPixel;
+  Adafruit_NeoPixel* strip;
+  unsigned int firstPixel, lastPixel;
   byte state;
   uint32_t color;
 
   unsigned long lastChange;
 
   public:
-  Animations_Blink(int first, int last) {
+  Animations_Blink(Adafruit_NeoPixel* neoStrip, unsigned int first, unsigned int last) {
+    strip = neoStrip;
     firstPixel = first;
     lastPixel = last;
     state = OFF;
@@ -54,15 +56,15 @@ class Animations_Blink {
       }
 
       for(uint16_t pixel = firstPixel; pixel <= lastPixel; pixel++) {
-        strip.setPixelColor(pixel, color);
+        (*strip).setPixelColor(pixel, color);
       }
-      strip.show();
+      (*strip).show();
     }
   }
 };
 
-Animations_Blink blink1 = Animations_Blink(7, 9);
-Animations_Blink blink2 = Animations_Blink(12, 14);
+Animations_Blink blink1 = Animations_Blink(&strip, 35, 36);
+Animations_Blink blink2 = Animations_Blink(&strip, 38, 39);
 
 void loop() {
   // Blink
