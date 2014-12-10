@@ -63,16 +63,66 @@ class Animations_Blink {
   }
 };
 
+class Animations_Pulsating {
+  Adafruit_NeoPixel* strip;
+  unsigned int firstPixel, lastPixel;
+  int colorRed;
+  int period,
+      delta,
+      lowerBoundary,
+      upperBoundary;
+
+  unsigned long lastChange;
+
+  public:
+  Animations_Pulsating(Adafruit_NeoPixel* neoStrip, unsigned int first, unsigned int last) {
+    strip = neoStrip;
+    firstPixel = first;
+    lastPixel = last;
+    period = 5;
+    lowerBoundary = 50;
+    upperBoundary = 200;
+    colorRed = lowerBoundary;
+    delta = 1;
+    lastChange = millis();
+  }
+
+  void update() {
+    if(millis() - lastChange > period) {
+      lastChange = millis();
+      colorRed = colorRed + delta;
+      if(colorRed <= lowerBoundary) {
+        colorRed = lowerBoundary;
+        delta = -delta;
+      }
+      if(colorRed >= upperBoundary) {
+        colorRed = upperBoundary;
+        delta = -delta;
+      }
+      uint32_t color = (*strip).Color(colorRed, 0, 0);
+      Serial.println(color, HEX);
+      for(uint16_t pixel = firstPixel; pixel <= lastPixel; pixel++) {
+        (*strip).setPixelColor(pixel, color);
+      }
+      (*strip).show();
+    }
+  }
+};
+
 Animations_Blink blink1 = Animations_Blink(&strip, 35, 36);
 Animations_Blink blink2 = Animations_Blink(&strip, 38, 39);
+
+Animations_Pulsating pulsating = Animations_Pulsating(&strip, 7, 17);
 
 void loop() {
   // Blink
   blink1.update();
   blink2.update();
 
-  // Fireworks
   // Pulsating
+  pulsating.update();
+
+  // Fireworks
   // Knight Rider
 }
 
