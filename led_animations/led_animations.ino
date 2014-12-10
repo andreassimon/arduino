@@ -106,10 +106,49 @@ class Animations_Pulsating {
   }
 };
 
+class Animations_Fireworks {
+  Adafruit_NeoPixel* strip;
+  unsigned int firstPixel, lastPixel;
+  int colorRed;
+  unsigned long lastChange, period, delta;
+  uint32_t color;
+  int pixel;
+
+  public:
+  Animations_Fireworks(Adafruit_NeoPixel* strip, unsigned int first, unsigned int last) {
+    (*this).strip = strip;
+    firstPixel = first;
+    lastPixel = last;
+    pixel = first;
+    period = 50;
+    colorRed = 0;
+    delta = 1;
+    lastChange = millis();
+  }
+
+  void update() {
+    color = (*strip).Color(128,0,0);
+    if(millis() - lastChange > period) {
+      lastChange = millis();
+      (*strip).setPixelColor(pixel, BLACK);
+      pixel++;
+      if(pixel > lastPixel) {
+        pixel = firstPixel;
+      }
+
+      (*strip).setPixelColor(pixel, color);
+      (*strip).show();
+    }
+  }
+};
+
+
 Animations_Blink blink1 = Animations_Blink(&strip, 35, 36);
 Animations_Blink blink2 = Animations_Blink(&strip, 38, 39);
 
 Animations_Pulsating pulsating = Animations_Pulsating(&strip, 23, 32, 100, 200);
+
+Animations_Fireworks fireworks = Animations_Fireworks(&strip, 7, 17);
 
 void loop() {
   blink1.update();
@@ -117,7 +156,7 @@ void loop() {
 
   pulsating.update();
 
-  // Fireworks
+  fireworks.update();
   // Knight Rider
 }
 
