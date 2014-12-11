@@ -6,12 +6,27 @@
 
 // #define DEBUG
 
-struct Job {
+class Job {
   const char* host;
   int port;
   const char* uri;
   uint16_t firstPixel;
   uint16_t lastPixel;
+
+  public:
+  Job(const char* host, int port, const char* uri, uint16_t firstPixel, uint16_t lastPixel) {
+    (*this).host = host;
+    (*this).port = port;
+    (*this).uri = uri;
+    (*this).firstPixel = firstPixel;
+    (*this).lastPixel = lastPixel;
+  }
+
+  const char* getHost() { return host; }
+  int getPort() { return port; }
+  const char* getUri() { return uri; }
+  uint16_t getFirstPixel() { return firstPixel; }
+  uint16_t getLastPixel() { return lastPixel; }
 };
 
 // Enter the IP address for your controller below.
@@ -22,10 +37,10 @@ struct Job {
   const IPAddress ip(10,10,11,13);
   const char* jenkins = "10.10.11.16";
   const Job jobs[] = {
-    { jenkins, 8080, "/job/blue/api/json",  0,  9 },
-    { jenkins, 8080, "/job/blue-animated/api/json", 10, 19 },
-    { jenkins, 8080, "/job/red/api/json", 20, 29 },
-    { jenkins, 8080, "/job/red-animated/api/json", 30, 39 }
+    Job( jenkins, 8080, "/job/blue/api/json",  0,  9 ),
+    Job( jenkins, 8080, "/job/blue-animated/api/json", 10, 19 ),
+    Job( jenkins, 8080, "/job/red/api/json", 20, 29 ),
+    Job( jenkins, 8080, "/job/red-animated/api/json", 30, 39 )
   };
 
 /*
@@ -123,11 +138,11 @@ void setup() {
   Serial.println(Ethernet.localIP());
 
   parser = JenkinsJobParser();
-  colorWipe(RED  , 50);
-  colorWipe(GREEN, 50);
-  colorWipe(BLUE , 50);
-  colorWipe(WHITE, 50);
-  colorWipe(BLACK, 50);
+  // colorWipe(RED  , 50);
+  // colorWipe(GREEN, 50);
+  // colorWipe(BLUE , 50);
+  // colorWipe(WHITE, 50);
+  // colorWipe(BLACK, 50);
 }
 
 char c;
@@ -172,13 +187,13 @@ void loop() {
     Serial.println(parser.getColor());
     ledColor = ledColorFromJobState(parser.getColor());
     Serial.print(" setPixels( ");
-    Serial.print(currentJob.firstPixel);
+    Serial.print(currentJob.getFirstPixel());
     Serial.print(", ");
-    Serial.print(currentJob.lastPixel);
+    Serial.print(currentJob.getLastPixel());
     Serial.print(", ");
     Serial.print(ledColor);
     Serial.println(" )");
-    setPixels(currentJob.firstPixel, currentJob.lastPixel, ledColor);
+    setPixels(currentJob.getFirstPixel(), currentJob.getLastPixel(), ledColor);
     Serial.println();
 
     currentJobIndex++;
@@ -187,7 +202,7 @@ void loop() {
     }
     currentJob = jobs[currentJobIndex];
 
-    GET(currentJob.host, currentJob.port, currentJob.uri);
+    GET(currentJob.getHost(), currentJob.getPort(), currentJob.getUri());
     parser.reset();
   }
   if(client.available()) {
