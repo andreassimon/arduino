@@ -11,19 +11,22 @@ const uint32_t RED = strip.Color(128, 0, 0);
 #include "lib/Animations/Blink.cpp"
 #include "lib/Animations/Pulsating.cpp"
 #include "lib/Animations/Fireworks.cpp"
+#include "lib/Animations/KnightRider.cpp"
 
 Animations::Blink blink1 = Animations::Blink(&strip, 35, 36, RED, BLACK);
 Animations::Blink blink2 = Animations::Blink(&strip, 38, 39, RED, BLACK);
 
-Animations::Pulsating pulsating = Animations::Pulsating(&strip, 23, 32, 100, 200);
+Animations::Pulsating pulsating = Animations::Pulsating(&strip, 28, 32, 100, 200);
 
-Animations::Fireworks fireworks = Animations::Fireworks(&strip, 7, 17);
+Animations::Fireworks fireworks = Animations::Fireworks(&strip, 21, 25);
+Animations::KnightRider knightRider = Animations::KnightRider(&strip, 7, 17);
 
 Animations::Animation* animations[] = {
-  &blink1,
-  &blink2,
-  &pulsating,
-  &fireworks
+  //&blink1,
+  //&blink2,
+  //&pulsating,
+  //&fireworks,
+  &knightRider
 };
 
 void setup() {
@@ -39,7 +42,7 @@ void setup() {
 }
 
 void loop() {
-  for(int i; i<4; i++) {
+  for(int i = 0; i<1; i++) {
     (*animations[i]).update();
   }
 
