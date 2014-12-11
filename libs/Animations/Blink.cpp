@@ -1,10 +1,11 @@
 #include <Adafruit_NeoPixel.h>
+#include "Animation.cpp"
 
 namespace Animations {
   const byte OFF = 0,
         ON  = 1;
 
-  class Blink {
+  class Blink : public Animation {
     Adafruit_NeoPixel* strip;
     unsigned int firstPixel, lastPixel;
     byte state;

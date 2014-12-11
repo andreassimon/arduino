@@ -1,11 +1,12 @@
 #include <Adafruit_NeoPixel.h>
+#include "Animation.cpp"
 
 namespace Animations {
 
   const byte PAUSING = 0,
         SHOOTING = 1;
 
-  class Fireworks {
+  class Fireworks : public Animation {
 
     Adafruit_NeoPixel* strip;
     unsigned int firstPixel, lastPixel;

@@ -1,8 +1,8 @@
-#include <Arduino.h>
 #include <Adafruit_NeoPixel.h>
+#include "Animation.cpp"
 
 namespace Animations {
-  class Pulsating {
+  class Pulsating : public Animation {
     Adafruit_NeoPixel* strip;
     unsigned int firstPixel, lastPixel;
     int colorRed;
