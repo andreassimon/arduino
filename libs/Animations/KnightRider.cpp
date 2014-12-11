@@ -4,57 +4,73 @@
 namespace Animations {
 
   const byte KR_PAUSING = 0,
-        KR_SHOOTING = 1;
+        MOVE_RIGHT = 1,
+        MOVE_LEFT  = 2;
 
   class KnightRider : public Animation {
 
     Adafruit_NeoPixel* strip;
     unsigned int firstPixel, lastPixel;
     byte state;
-    unsigned long lastFlash, lastShade, flashPeriod, shadePeriod, pauseStart, pauseTime;
-    uint32_t currentColor;
-    unsigned int shootingPixel;
+    byte darkRed, brightRed;
+    unsigned long lastMove, movePeriod, pauseStart, pauseTime;
+    unsigned int leftPixel;
 
     public:
     KnightRider(Adafruit_NeoPixel* strip, unsigned int first, unsigned int last) {
       (*this).strip = strip;
       firstPixel = first;
       lastPixel = last;
-      state = KR_SHOOTING;
-      shootingPixel = first;
-      flashPeriod = 30;
-      shadePeriod = 5;
+      state = MOVE_RIGHT;
+      leftPixel = first;
+      movePeriod = 30ul;
       pauseTime = 1000ul;
+
+      darkRed = 60;
+      brightRed = 192;
     }
 
     void update() {
       switch(state) {
         case KR_PAUSING:
           if(millis() - pauseStart > pauseTime) {
-            shootingPixel = firstPixel-1;
-            state = KR_SHOOTING;
+            leftPixel = firstPixel-3;
+            state = MOVE_RIGHT;
           }
           break;
-        case KR_SHOOTING:
-          if(millis() - lastFlash > flashPeriod) {
-            lastFlash = millis();
-            shootingPixel++;
-            if(shootingPixel > lastPixel) {
-              pauseStart = millis();
-              state = KR_PAUSING;
-            } else {
-              (*strip).setPixelColor(shootingPixel, (*strip).Color(128, 0, 0));
+        case MOVE_RIGHT:
+          if(millis() - lastMove > movePeriod) {
+            lastMove = millis();
+            leftPixel++;
+            if(leftPixel > lastPixel) {
+              state = MOVE_LEFT;
+            }
+            for(unsigned int pixel=firstPixel; pixel<=lastPixel; pixel++) {
+              if(leftPixel<=pixel && pixel<=(leftPixel+3)) {
+                (*strip).setPixelColor(pixel, (*strip).Color(brightRed, 0, 0));
+              } else {
+                (*strip).setPixelColor(pixel, (*strip).Color(darkRed, 0, 0));
+              }
             }
           }
           break;
-      }
-      if(millis() - lastShade > shadePeriod) {
-        lastShade = millis();
-        for(uint16_t pixel = firstPixel; pixel <= lastPixel; pixel++) {
-          currentColor = ((*strip).getPixelColor(pixel) - 10) & 0xff0000;
-          if(currentColor < 0x080000) currentColor = 0x080000;
-          (*strip).setPixelColor(pixel, currentColor);
-        }
+        case MOVE_LEFT:
+          if(millis() - lastMove > movePeriod) {
+            lastMove = millis();
+            leftPixel--;
+            if(leftPixel < firstPixel-3) {
+              pauseStart = millis();
+              state = KR_PAUSING;
+            }
+            for(unsigned int pixel=firstPixel; pixel<=lastPixel; pixel++) {
+              if(leftPixel<=pixel && pixel<=(leftPixel+3)) {
+                (*strip).setPixelColor(pixel, (*strip).Color(brightRed, 0, 0));
+              } else {
+                (*strip).setPixelColor(pixel, (*strip).Color(darkRed, 0, 0));
+              }
+            }
+          }
+          break;
       }
       (*strip).show();
     }
