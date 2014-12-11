@@ -22,10 +22,10 @@ Animations::Fireworks fireworks = Animations::Fireworks(&strip, 21, 25);
 Animations::KnightRider knightRider = Animations::KnightRider(&strip, 7, 17);
 
 Animations::Animation* animations[] = {
-  //&blink1,
-  //&blink2,
-  //&pulsating,
-  //&fireworks,
+  &blink1,
+  &blink2,
+  &pulsating,
+  &fireworks,
   &knightRider
 };
 
@@ -42,7 +42,7 @@ void setup() {
 }
 
 void loop() {
-  for(int i = 0; i<1; i++) {
+  for(int i = 0; i<5; i++) {
     (*animations[i]).update();
   }
 
