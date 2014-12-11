@@ -15,14 +15,16 @@ const uint32_t RED = strip.Color(128, 0, 0);
 Animations::Blink blink1 = Animations::Blink(&strip, 35, 36, RED, BLACK);
 Animations::Blink blink2 = Animations::Blink(&strip, 38, 39, RED, BLACK);
 
-Animations::Animation* a1 = &blink1;
-Animations::Animation* a2 = &blink2;
-
 Animations::Pulsating pulsating = Animations::Pulsating(&strip, 23, 32, 100, 200);
-Animations::Animation* a3 = &pulsating;
 
 Animations::Fireworks fireworks = Animations::Fireworks(&strip, 7, 17);
-Animations::Animation* a4 = &fireworks;
+
+Animations::Animation* animations[] = {
+  &blink1,
+  &blink2,
+  &pulsating,
+  &fireworks
+};
 
 void setup() {
   // Open serial communications and wait for port to open:
@@ -37,10 +39,9 @@ void setup() {
 }
 
 void loop() {
-  (*a1).update();
-  (*a2).update();
-  (*a3).update();
-  (*a4).update();
+  for(int i; i<4; i++) {
+    (*animations[i]).update();
+  }
 
   // Knight Rider
 }
