@@ -2,6 +2,7 @@
 #include <JenkinsJobParser.h>
 #include <Adafruit_NeoPixel.h>
 #include "lib/Animations/Animation.cpp"
+#include "lib/Animations/Constant.cpp"
 
 
 // #define DEBUG
@@ -19,6 +20,7 @@ class Job {
            red,
            white,
            ledColor;
+  Animations::Animation* animation;
 
   public:
   Job(const char* host, int port, const char* uri, uint16_t firstPixel, uint16_t lastPixel, Adafruit_NeoPixel* strip) {
@@ -50,12 +52,21 @@ class Job {
   }
 
   Animations::Animation* animationFromJobState(String jobState) {
-    if(String("blue") == jobState) { }
-    if(String("blue_anime") == jobState) { }
-    if(String("red") == jobState) { }
-    if(String("red_anime") == jobState) { }
+    if(String("blue") == jobState) {
+      return new Animations::Constant(strip, firstPixel, lastPixel, green);
+    }
+    if(String("blue_anime") == jobState) {
+      return new Animations::Constant(strip, firstPixel, lastPixel, green);
+    }
+    if(String("red") == jobState) {
+      return new Animations::Constant(strip, firstPixel, lastPixel, red);
+    }
+    if(String("red_anime") == jobState) {
+      return new Animations::Constant(strip, firstPixel, lastPixel, red);
+    }
   }
 
+  // Deprecated
   void setPixels(uint16_t firstPixel, uint16_t lastPixel, uint32_t color) {
     for(uint16_t pixel = firstPixel; pixel <= lastPixel; pixel++) {
       (*strip).setPixelColor(pixel, color);
@@ -63,6 +74,7 @@ class Job {
     (*strip).show();
   }
 
+  // Deprecated
   void setBuildColor(String buildColor) {
     Serial.print(" => ");
     ledColor = ledColorFromJobState(buildColor);
@@ -75,6 +87,10 @@ class Job {
     Serial.println(" )");
     setPixels(firstPixel, lastPixel, ledColor);
     Serial.println();
+  }
+
+  void updateBuildColor(String buildColor) {
+    (*this).animation = animationFromJobState(buildColor);
   }
 };
 
