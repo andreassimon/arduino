@@ -1,8 +1,8 @@
 #include <Ethernet.h>
 #include <JenkinsJobParser.h>
 #include <Adafruit_NeoPixel.h>
-#include "lib/Animations/Animation.cpp"
 #include "lib/Animations/Constant.cpp"
+#include "lib/Animations/KnightRider.cpp"
 
 
 // #define DEBUG
@@ -56,13 +56,13 @@ class Job {
       return new Animations::Constant(strip, firstPixel, lastPixel, green);
     }
     if(String("blue_anime") == jobState) {
-      return new Animations::Constant(strip, firstPixel, lastPixel, green);
+      return new Animations::KnightRider(strip, firstPixel, lastPixel, (*strip).Color(0, 192, 0), (*strip).Color(0, 60, 0));
     }
     if(String("red") == jobState) {
       return new Animations::Constant(strip, firstPixel, lastPixel, red);
     }
     if(String("red_anime") == jobState) {
-      return new Animations::Constant(strip, firstPixel, lastPixel, red);
+      return new Animations::KnightRider(strip, firstPixel, lastPixel, (*strip).Color(192, 0, 0), (*strip).Color(60, 0, 0));
     }
   }
 

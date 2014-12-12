@@ -12,12 +12,12 @@ namespace Animations {
     Adafruit_NeoPixel* strip;
     unsigned int firstPixel, lastPixel;
     byte state;
-    byte darkRed, brightRed;
+    uint32_t darkColor, brightColor;
     unsigned long lastMove, movePeriod, pauseStart, pauseTime;
     unsigned int leftPixel;
 
     public:
-    KnightRider(Adafruit_NeoPixel* strip, unsigned int first, unsigned int last) {
+    KnightRider(Adafruit_NeoPixel* strip, unsigned int first, unsigned int last, uint32_t brightColor, uint32_t darkColor) {
       (*this).strip = strip;
       firstPixel = first;
       lastPixel = last;
@@ -26,8 +26,8 @@ namespace Animations {
       movePeriod = 30ul;
       pauseTime = 1000ul;
 
-      darkRed = 60;
-      brightRed = 192;
+      (*this).brightColor = brightColor;
+      (*this).darkColor = darkColor;
     }
 
     void update() {
@@ -47,9 +47,9 @@ namespace Animations {
             }
             for(unsigned int pixel=firstPixel; pixel<=lastPixel; pixel++) {
               if(leftPixel<=pixel && pixel<=(leftPixel+3)) {
-                (*strip).setPixelColor(pixel, (*strip).Color(brightRed, 0, 0));
+                (*strip).setPixelColor(pixel, brightColor);
               } else {
-                (*strip).setPixelColor(pixel, (*strip).Color(darkRed, 0, 0));
+                (*strip).setPixelColor(pixel, darkColor);
               }
             }
           }
@@ -64,9 +64,9 @@ namespace Animations {
             }
             for(unsigned int pixel=firstPixel; pixel<=lastPixel; pixel++) {
               if(leftPixel<=pixel && pixel<=(leftPixel+3)) {
-                (*strip).setPixelColor(pixel, (*strip).Color(brightRed, 0, 0));
+                (*strip).setPixelColor(pixel, brightColor);
               } else {
-                (*strip).setPixelColor(pixel, (*strip).Color(darkRed, 0, 0));
+                (*strip).setPixelColor(pixel, darkColor);
               }
             }
           }
