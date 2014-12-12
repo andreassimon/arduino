@@ -50,7 +50,7 @@ void JenkinsJobParser::processKeyChar(const unsigned char c) {
   switch(c) {
     case '"':
       currentKey[currentKeyIndex] = '\0';
-      if(strncmp("color", currentKey, strlen("color")) == 0) {
+      if(strcmp("color", currentKey) == 0) {
         parserState = PARSER_AFTER_COLOR_KEY;
       } else {
         parserState = PARSER_AFTER_KEY;
@@ -66,11 +66,13 @@ void JenkinsJobParser::processKeyChar(const unsigned char c) {
 void JenkinsJobParser::pushDelimiter(const char c) {
   lastDelimiterIndex++;
   if(lastDelimiterIndex >= MAX_DELIMITERS) {
+#ifdef DEBUG
     Serial.print("ERROR: The maximum number of delimiters (");
     Serial.print(MAX_DELIMITERS);
     Serial.print(") is exceeded, you try to push '");
     Serial.print(c);
     Serial.println("'");
+#endif
     parserState = PARSER_ERROR;
     return;
   }
@@ -96,12 +98,14 @@ void JenkinsJobParser::processDelimitedValueChar(const char c) {
       if('[' == lastDelimiter) {
         popDelimiter();
       } else {
+#ifdef DEBUG
         Serial.print("'");
         Serial.print(openingDelimiters);
         Serial.println("'");
         Serial.print("ERROR: Parser expected last opening delimiter to be '[', but was '");
         Serial.print(lastDelimiter);
         Serial.println("'");
+#endif
         parserState = PARSER_ERROR;
       }
       break;
@@ -110,9 +114,11 @@ void JenkinsJobParser::processDelimitedValueChar(const char c) {
       if('{' == lastDelimiter) {
         popDelimiter();
       } else {
+#ifdef DEBUG
         Serial.print("ERROR: Parser expected last opening delimiter to be '{', but was '");
         Serial.print(lastDelimiter);
         Serial.println("'");
+#endif
         parserState = PARSER_ERROR;
       }
       break;
@@ -145,6 +151,7 @@ void JenkinsJobParser::processResponseChar(const char c) {
       return;
     case PARSER_AFTER_KEY:
       if(':' != c) {
+#ifdef DEBUG
         Serial.print("ERROR @ char ");
         Serial.print(parsedCharacters);
         Serial.print(": Parser expected '");
@@ -156,6 +163,7 @@ void JenkinsJobParser::processResponseChar(const char c) {
         Serial.print("' (");
         Serial.print((int)c, HEX);
         Serial.println(")");
+#endif
         parserState = PARSER_ERROR;
         return;
       }
@@ -163,6 +171,7 @@ void JenkinsJobParser::processResponseChar(const char c) {
       return;
     case PARSER_AFTER_COLOR_KEY:
       if(':' != c) {
+#ifdef DEBUG
         Serial.print("ERROR @ char ");
         Serial.print(parsedCharacters);
         Serial.print(": Parser expected '");
@@ -174,6 +183,7 @@ void JenkinsJobParser::processResponseChar(const char c) {
         Serial.print("' (");
         Serial.print((int)c, HEX);
         Serial.println(")");
+#endif
         parserState = PARSER_ERROR;
         return;
       }
@@ -184,9 +194,11 @@ void JenkinsJobParser::processResponseChar(const char c) {
         parserState = PARSER_IN_COLOR_VALUE;
         color = String("");
       } else {
+#ifdef DEBUG
         Serial.print("ERROR: Parser expected '\"', but found '");
         Serial.print(c);
         Serial.println("'");
+#endif
         parserState = PARSER_ERROR;
       }
       return;
@@ -232,9 +244,11 @@ void JenkinsJobParser::processResponseChar(const char c) {
           parserState = PARSER_IN_LITERAL_VALUE;
           break;
         default:
+#ifdef DEBUG
           Serial.print("ERROR: Parser can not detect JSON value starting with '");
           Serial.print(c);
           Serial.println("'");
+#endif
           parserState = PARSER_ERROR;
       }
       return;
@@ -246,6 +260,7 @@ void JenkinsJobParser::processResponseChar(const char c) {
           parserState = PARSER_VALUE_CLOSED;
         }
       } else {
+#ifdef DEBUG
         Serial.print("ERROR: Parser expected '");
         Serial.print(expectedLiteralValue[nextExpectedLiteralValueIndex]);
         Serial.print("' as part of literal '");
@@ -253,6 +268,7 @@ void JenkinsJobParser::processResponseChar(const char c) {
         Serial.print("', but found '");
         Serial.print(c);
         Serial.println("'");
+#endif
         parserState = PARSER_ERROR;
       }
       return;
@@ -275,16 +291,20 @@ void JenkinsJobParser::processResponseChar(const char c) {
           parserState = PARSER_FINISHED;
           break;
         default:
+#ifdef DEBUG
           Serial.print("ERROR: Parser expected ',' or '}', but found '");
           Serial.print(c);
           Serial.println("'");
+#endif
           parserState = PARSER_ERROR;
       }
       return;
     case PARSER_FINISHED:
+#ifdef DEBUG
       Serial.print("ERROR: Parser expected no more characters, but found '");
       Serial.print(c);
       Serial.println("'");
+#endif
       parserState = PARSER_ERROR;
   }
 }

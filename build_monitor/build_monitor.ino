@@ -130,12 +130,9 @@ void GET(const char *host, const int port, const char *uri) {
 
     client.print("GET ");
     client.print(uri);
-    client.println(" HTTP/1.0");
-    client.print("Host: ");
-    client.println(host);
-    client.println("User-Agent: Arduino Uno Build Monitor");
-    client.println("Connection: close");
-    client.println();
+    client.print(" HTTP/1.0\nHost: ");
+    client.print(host);
+    client.print("\nUser-Agent: Arduino Build Monitor\nConnection: close\n\n");
   } else {
 #ifdef DEBUG
     Serial.print("HTTP connection failed: ");
@@ -170,7 +167,7 @@ void setup() {
 //    Serial.println(ip);
     Ethernet.begin(mac, ip);
 //  }
-  Serial.print("Connected with IP ");
+  Serial.print("IP: ");
   Serial.println(Ethernet.localIP());
 
   parser = JenkinsJobParser();
