@@ -99,9 +99,9 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_PIXELS, PIN, NEO_GRB + NEO_KHZ80
   // Gruenspar
   const IPAddress ip(192,168,1,128);
   const char *jenkins = "192.168.1.140";
-  const Job jobs[] = {
-    { jenkins, 8080, "/job/earth-mage_ALL_Build/api/json",  0, 14, &strip },
-    { jenkins, 8080, "/job/earth-mage_ALL_UnitTests/api/json", 15, 29, &strip }
+  Job* jobs[] = {
+    new Job( jenkins, 8080, "/job/earth-mage_ALL_Build/api/json",  0, 14, &strip ),
+    new Job( jenkins, 8080, "/job/earth-mage_ALL_UnitTests/api/json", 15, 29, &strip )
   };
 */
 
