@@ -33,9 +33,9 @@ class Job {
     (*this).lastPixel = lastPixel;
     (*this).strip = strip;
     (*this).green = new Animations::Constant(strip, firstPixel, lastPixel, 0x003200);
-    (*this).greenAnimated = new Animations::Blink(strip, firstPixel, lastPixel, (*strip).Color(0, 192, 0), (*strip).Color(0, 60, 0));
+    (*this).greenAnimated = new Animations::Blink(strip, firstPixel, lastPixel, 0x00c000, 0x003c00);
     (*this).red = new Animations::Constant(strip, firstPixel, lastPixel, 0x800000);
-    (*this).redAnimated = new Animations::Blink(strip, firstPixel, lastPixel, (*strip).Color(192, 0, 0), (*strip).Color(60, 0, 0));
+    (*this).redAnimated = new Animations::Blink(strip, firstPixel, lastPixel, 0xc00000, 0x3c0000);
     (*this).unknown = new Animations::Constant(strip, firstPixel, lastPixel, 0x202020);
     (*this).animation = unknown;
   }
