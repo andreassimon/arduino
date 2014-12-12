@@ -1,7 +1,7 @@
-#include <SPI.h>
 #include <Ethernet.h>
 #include <JenkinsJobParser.h>
 #include <Adafruit_NeoPixel.h>
+#include "lib/Animations/Animation.cpp"
 
 
 // #define DEBUG
@@ -47,6 +47,13 @@ class Job {
         String("red_anime") == jobState)
       return red;
     return white;
+  }
+
+  Animations::Animation* animationFromJobState(String jobState) {
+    if(String("blue") == jobState) { }
+    if(String("blue_anime") == jobState) { }
+    if(String("red") == jobState) { }
+    if(String("red_anime") == jobState) { }
   }
 
   void setPixels(uint16_t firstPixel, uint16_t lastPixel, uint32_t color) {
