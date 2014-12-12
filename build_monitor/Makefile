@@ -17,7 +17,7 @@ PROGRAMMER = arduino
 
 # Where to find header files and libraries.
 INC_DIRS = ./inc
-LIB_DIRS = $(addprefix $(PWD)/lib/, $(LIBS)) $(PWD)/lib/Adafruit_NeoPixel/
-LIBS = Ethernet Ethernet/utility JenkinsJobParser SPI
+LIB_DIRS = $(addprefix $(PWD)/lib/, $(LIBS))
+LIBS = Adafruit_NeoPixel Ethernet Ethernet/utility JenkinsJobParser SPI
 
 include ../Makefile.master

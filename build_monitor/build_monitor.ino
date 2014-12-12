@@ -2,7 +2,8 @@
 #include <JenkinsJobParser.h>
 #include <Adafruit_NeoPixel.h>
 #include "lib/Animations/Constant.cpp"
-#include "lib/Animations/KnightRider.cpp"
+#include "lib/Animations/Blink.cpp"
+// #include "lib/Animations/KnightRider.cpp"
 
 
 // #define DEBUG
@@ -16,11 +17,12 @@ class Job {
   uint16_t firstPixel;
   uint16_t lastPixel;
   Adafruit_NeoPixel* strip;
-  uint32_t green,
-           red,
-           white,
-           ledColor;
-  Animations::Animation* animation;
+  Animations::Animation *animation,
+                        *green,
+                        *greenAnimated,
+                        *red,
+                        *redAnimated,
+                        *unknown;
 
   public:
   Job(const char* host, int port, const char* uri, uint16_t firstPixel, uint16_t lastPixel, Adafruit_NeoPixel* strip) {
@@ -30,9 +32,12 @@ class Job {
     (*this).firstPixel = firstPixel;
     (*this).lastPixel = lastPixel;
     (*this).strip = strip;
-    (*this).green = (*strip).Color(  0,  50,   0);
-    (*this).red =   (*strip).Color(128,   0,   0);
-    (*this).white = (*strip).Color( 20,  20,  20);
+    (*this).green = new Animations::Constant(strip, firstPixel, lastPixel, 0x003200);
+    (*this).greenAnimated = new Animations::Blink(strip, firstPixel, lastPixel, (*strip).Color(0, 192, 0), (*strip).Color(0, 60, 0));
+    (*this).red = new Animations::Constant(strip, firstPixel, lastPixel, 0x800000);
+    (*this).redAnimated = new Animations::Blink(strip, firstPixel, lastPixel, (*strip).Color(192, 0, 0), (*strip).Color(60, 0, 0));
+    (*this).unknown = new Animations::Constant(strip, firstPixel, lastPixel, 0x202020);
+    (*this).animation = unknown;
   }
 
   const char* getHost() { return host; }
@@ -41,56 +46,28 @@ class Job {
   uint16_t getFirstPixel() { return firstPixel; }
   uint16_t getLastPixel() { return lastPixel; }
 
-  uint32_t ledColorFromJobState(String jobState) {
-    if(String("blue") == jobState ||
-        String("blue_anime") == jobState)
-      return green;
-    if(String("red") == jobState ||
-        String("red_anime") == jobState)
-      return red;
-    return white;
-  }
-
   Animations::Animation* animationFromJobState(String jobState) {
     if(String("blue") == jobState) {
-      return new Animations::Constant(strip, firstPixel, lastPixel, green);
+      return green;
     }
     if(String("blue_anime") == jobState) {
-      return new Animations::KnightRider(strip, firstPixel, lastPixel, (*strip).Color(0, 192, 0), (*strip).Color(0, 60, 0));
+      return greenAnimated;
     }
     if(String("red") == jobState) {
-      return new Animations::Constant(strip, firstPixel, lastPixel, red);
+      return red;
     }
     if(String("red_anime") == jobState) {
-      return new Animations::KnightRider(strip, firstPixel, lastPixel, (*strip).Color(192, 0, 0), (*strip).Color(60, 0, 0));
+      return redAnimated;
     }
+    return unknown;
   }
 
-  // Deprecated
-  void setPixels(uint16_t firstPixel, uint16_t lastPixel, uint32_t color) {
-    for(uint16_t pixel = firstPixel; pixel <= lastPixel; pixel++) {
-      (*strip).setPixelColor(pixel, color);
-    }
-    (*strip).show();
-  }
-
-  // Deprecated
   void setBuildColor(String buildColor) {
-    Serial.print(" => ");
-    ledColor = ledColorFromJobState(buildColor);
-    Serial.print(" setPixels( ");
-    Serial.print(firstPixel);
-    Serial.print(", ");
-    Serial.print(lastPixel);
-    Serial.print(", ");
-    Serial.print(ledColor);
-    Serial.println(" )");
-    setPixels(firstPixel, lastPixel, ledColor);
-    Serial.println();
+    (*this).animation = animationFromJobState(buildColor);
   }
 
-  void updateBuildColor(String buildColor) {
-    (*this).animation = animationFromJobState(buildColor);
+  void updateAnimation() {
+    (*animation).update();
   }
 };
 
@@ -111,11 +88,11 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_PIXELS, PIN, NEO_GRB + NEO_KHZ80
   // DEV / TEST
   const IPAddress ip(10,10,11,13);
   const char* jenkins = "10.10.11.16";
-  const Job jobs[] = {
-    Job( jenkins, 8080, "/job/blue/api/json",  0,  9, &strip ),
-    Job( jenkins, 8080, "/job/blue-animated/api/json", 10, 19, &strip ),
-    Job( jenkins, 8080, "/job/red/api/json", 20, 29, &strip ),
-    Job( jenkins, 8080, "/job/red-animated/api/json", 30, 39, &strip )
+  Job* jobs[] = {
+    // new Job( jenkins, 8080, "/job/blue/api/json",  0,  9, &strip ),
+    new Job( jenkins, 8080, "/job/blue-animated/api/json", 10, 19, &strip ),
+    new Job( jenkins, 8080, "/job/red/api/json", 20, 29, &strip ),
+    new Job( jenkins, 8080, "/job/red-animated/api/json", 30, 39, &strip )
   };
 
 /*
@@ -128,10 +105,10 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_PIXELS, PIN, NEO_GRB + NEO_KHZ80
   };
 */
 
-const int numberOfJobs = sizeof(jobs) / sizeof(Job);
+const int numberOfJobs = sizeof(jobs) / sizeof(Job*);
 
 int currentJobIndex = 0;
-Job currentJob = jobs[currentJobIndex];
+Job* currentJob = jobs[currentJobIndex];
 
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 
@@ -142,12 +119,14 @@ EthernetClient client;
 void GET(const char *host, const int port, const char *uri) {
   int connStatus = client.connect(host, port);
   if(connStatus >= 0) {
+#ifdef DEBUG
     Serial.print("GET http://");
     Serial.print(host);
     Serial.print(":");
     Serial.print(port);
     Serial.print(uri);
     Serial.println();
+#endif
 
     client.print("GET ");
     client.print(uri);
@@ -180,9 +159,6 @@ JenkinsJobParser parser;
 void setup() {
   // Open serial communications and wait for port to open:
   Serial.begin(9600);
-  while (!Serial) {
-    ; // wait for serial port to connect. Needed for Leonardo only
-  }
 
   strip.begin();
   strip.show(); // Initialize all pixels to 'off'
@@ -225,7 +201,7 @@ void loop() {
   if(!client.connected()) {
     client.stop();
 
-    currentJob.setBuildColor(parser.getColor());
+    (*currentJob).setBuildColor(parser.getColor());
 
     currentJobIndex++;
     if(currentJobIndex >= numberOfJobs) {
@@ -233,11 +209,14 @@ void loop() {
     }
     currentJob = jobs[currentJobIndex];
 
-    GET(currentJob.getHost(), currentJob.getPort(), currentJob.getUri());
+    GET((*currentJob).getHost(), (*currentJob).getPort(), (*currentJob).getUri());
     parser.reset();
   }
   if(client.available()) {
     parser.processResponseChar(client.read());
+  }
+  for(int i = 0; i < numberOfJobs; i++) {
+    (*jobs[i]).updateAnimation();
   }
 
 #ifdef DEBUG
