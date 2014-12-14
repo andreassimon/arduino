@@ -10,7 +10,7 @@
 
 // #define DEBUG
 #define PIN 6
-#define NUM_PIXELS 40
+#define NUM_PIXELS 58
 
 class Job {
   const char* host;
@@ -96,7 +96,9 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_PIXELS, PIN, NEO_GRB + NEO_KHZ80
     new Job( jenkins, 8080, "/job/blue/api/json",  0,  9, &strip ),
     new Job( jenkins, 8080, "/job/blue-animated/api/json", 10, 19, &strip ),
     new Job( jenkins, 8080, "/job/red/api/json", 20, 29, &strip ),
-    new Job( jenkins, 8080, "/job/red-animated/api/json", 30, 39, &strip )
+    new Job( jenkins, 8080, "/job/red-animated/api/json", 30, 39, &strip ),
+    new Job( jenkins, 8080, "/job/earth-mage_ALL_UnitTests/api/json", 40, 49, &strip ),
+    new Job( jenkins, 8080, "/job/red/api/json", 50, 57, &strip )
   };
 
 /*
