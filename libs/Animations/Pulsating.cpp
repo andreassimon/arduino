@@ -2,7 +2,7 @@
 #include "Animation.cpp"
 
 namespace Animations {
-  class Pulsating : public Animation {
+  class PulsatingRed: public Animation {
     Adafruit_NeoPixel* strip;
     unsigned int firstPixel, lastPixel;
     int colorRed;
@@ -12,7 +12,7 @@ namespace Animations {
     unsigned long lastChange, period, delta;
 
     public:
-    Pulsating(Adafruit_NeoPixel* strip, unsigned int first, unsigned int last, int lowerBoundary, int upperBoundary) {
+    PulsatingRed(Adafruit_NeoPixel* strip, unsigned int first, unsigned int last, int lowerBoundary, int upperBoundary) {
       (*this).strip = strip;
       firstPixel = first;
       lastPixel = last;
@@ -37,6 +37,49 @@ namespace Animations {
           delta = -delta;
         }
         uint32_t color = (*strip).Color(colorRed, 0, 0);
+        for(uint16_t pixel = firstPixel; pixel <= lastPixel; pixel++) {
+          (*strip).setPixelColor(pixel, color);
+        }
+        (*strip).show();
+      }
+    }
+  };
+
+  class PulsatingGreen: public Animation {
+    Adafruit_NeoPixel* strip;
+    unsigned int firstPixel, lastPixel;
+    int colorGreen;
+    int lowerBoundary,
+        upperBoundary;
+
+    unsigned long lastChange, period, delta;
+
+    public:
+    PulsatingGreen(Adafruit_NeoPixel* strip, unsigned int first, unsigned int last, int lowerBoundary, int upperBoundary) {
+      (*this).strip = strip;
+      firstPixel = first;
+      lastPixel = last;
+      period = 5;
+      (*this).lowerBoundary = lowerBoundary;
+      (*this).upperBoundary = upperBoundary;
+      colorGreen = lowerBoundary;
+      delta = 1;
+      lastChange = millis();
+    }
+
+    void update() {
+      if(millis() - lastChange > period) {
+        lastChange = millis();
+        colorGreen = colorGreen + delta;
+        if(colorGreen <= lowerBoundary) {
+          colorGreen = lowerBoundary;
+          delta = -delta;
+        }
+        if(colorGreen >= upperBoundary) {
+          colorGreen = upperBoundary;
+          delta = -delta;
+        }
+        uint32_t color = (*strip).Color(0, colorGreen, 0);
         for(uint16_t pixel = firstPixel; pixel <= lastPixel; pixel++) {
           (*strip).setPixelColor(pixel, color);
         }

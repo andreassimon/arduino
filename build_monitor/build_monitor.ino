@@ -3,7 +3,8 @@
 #include <Adafruit_NeoPixel.h>
 #include "lib/Animations/Constant.cpp"
 #include "lib/Animations/Blink.cpp"
-// #include "lib/Animations/KnightRider.cpp"
+#include "lib/Animations/KnightRider.cpp"
+#include "lib/Animations/Pulsating.cpp"
 
 
 // #define DEBUG
@@ -33,9 +34,11 @@ class Job {
     (*this).lastPixel = lastPixel;
     (*this).strip = strip;
     (*this).green = new Animations::Constant(strip, firstPixel, lastPixel, 0x003200);
-    (*this).greenAnimated = new Animations::Blink(strip, firstPixel, lastPixel, 0x00c000, 0x003c00);
+    // (*this).greenAnimated = new Animations::KnightRider(strip, firstPixel, lastPixel, 0x00c000, 0x003c00);
+    (*this).greenAnimated = new Animations::PulsatingGreen(strip, firstPixel, lastPixel, 60, 200);
     (*this).red = new Animations::Constant(strip, firstPixel, lastPixel, 0x800000);
-    (*this).redAnimated = new Animations::Blink(strip, firstPixel, lastPixel, 0xc00000, 0x3c0000);
+    // (*this).redAnimated = new Animations::KnightRider(strip, firstPixel, lastPixel, 0xc00000, 0x3c0000);
+    (*this).redAnimated = new Animations::PulsatingRed(strip, firstPixel, lastPixel, 60, 200);
     (*this).unknown = new Animations::Constant(strip, firstPixel, lastPixel, 0x202020);
     (*this).animation = unknown;
   }
@@ -89,10 +92,10 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_PIXELS, PIN, NEO_GRB + NEO_KHZ80
   const IPAddress ip(10,10,11,13);
   const char* jenkins = "10.10.11.16";
   Job* jobs[] = {
-    new Job( jenkins, 8080, "/job/blue/api/json",  0,  9, &strip ),
-    new Job( jenkins, 8080, "/job/blue-animated/api/json", 10, 19, &strip ),
     new Job( jenkins, 8080, "/job/red/api/json", 20, 29, &strip ),
-    new Job( jenkins, 8080, "/job/red-animated/api/json", 30, 39, &strip )
+    new Job( jenkins, 8080, "/job/red-animated/api/json", 30, 39, &strip ),
+    new Job( jenkins, 8080, "/job/blue-animated/api/json", 10, 19, &strip ),
+    new Job( jenkins, 8080, "/job/blue/api/json",  0,  9, &strip )
   };
 
 /*
