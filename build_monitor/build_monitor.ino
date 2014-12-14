@@ -93,10 +93,10 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_PIXELS, PIN, NEO_GRB + NEO_KHZ80
   const IPAddress ip(10,10,11,13);
   const char* jenkins = "10.10.11.16";
   Job* jobs[] = {
-    new Job( jenkins, 8080, "/job/red/api/json", 20, 29, &strip ),
-    new Job( jenkins, 8080, "/job/red-animated/api/json", 30, 39, &strip ),
+    new Job( jenkins, 8080, "/job/blue/api/json",  0,  9, &strip ),
     new Job( jenkins, 8080, "/job/blue-animated/api/json", 10, 19, &strip ),
-    new Job( jenkins, 8080, "/job/blue/api/json",  0,  9, &strip )
+    new Job( jenkins, 8080, "/job/red/api/json", 20, 29, &strip ),
+    new Job( jenkins, 8080, "/job/red-animated/api/json", 30, 39, &strip )
   };
 
 /*
@@ -111,7 +111,7 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_PIXELS, PIN, NEO_GRB + NEO_KHZ80
 
 const int numberOfJobs = sizeof(jobs) / sizeof(Job*);
 
-int currentJobIndex = 0;
+int currentJobIndex = numberOfJobs-1;
 Job* currentJob = jobs[currentJobIndex];
 
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
