@@ -4,7 +4,8 @@
 #include "lib/Animations/Constant.cpp"
 #include "lib/Animations/Blink.cpp"
 #include "lib/Animations/KnightRider.cpp"
-#include "lib/Animations/Pulsating.cpp"
+#include "lib/Animations/PulsatingGreen.cpp"
+#include "lib/Animations/PulsatingRed.cpp"
 
 
 // #define DEBUG
