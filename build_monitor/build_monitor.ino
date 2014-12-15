@@ -167,21 +167,21 @@ void setup() {
   strip.show(); // Initialize all pixels to 'off'
 
   // start the Ethernet connection:
-//  if (Ethernet.begin(mac) == 0) {
-//    Serial.println("Failed to configure Ethernet using DHCP");
-//    Serial.print("Try now to connect with IP ");
-//    Serial.println(ip);
+  if (Ethernet.begin(mac) == 0) {
+    Serial.println("Failed to configure Ethernet using DHCP");
+    Serial.print("Try now to connect with IP ");
+    Serial.println(ip);
     Ethernet.begin(mac, ip);
-//  }
+  }
   Serial.print("IP: ");
   Serial.println(Ethernet.localIP());
 
   parser = JenkinsJobParser();
-  // colorWipe(strip.Color(128,   0,   0), 50); // red
-  // colorWipe(strip.Color(  0,  50,   0), 50); // green
-  // colorWipe(strip.Color(  0,   0,  30), 50); // blue
+  colorWipe(strip.Color(128,   0,   0), 50); // red
+  colorWipe(strip.Color(  0,  50,   0), 50); // green
+  colorWipe(strip.Color(  0,   0,  30), 50); // blue
   // colorWipe(strip.Color( 20,  20,  20), 50); // white
-  // colorWipe(strip.Color(  0,   0,   0), 50); // black
+  colorWipe(strip.Color(  0,   0,   0), 50); // black
 }
 
 
