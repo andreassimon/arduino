@@ -106,8 +106,8 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_PIXELS, PIN, NEO_GRB + NEO_KHZ80
   const IPAddress ip(192,168,1,128);
   const char *jenkins = "192.168.1.140";
   Job* jobs[] = {
-    new Job( jenkins, 8080, "/job/earth-mage_ALL_Build/api/json",  0, 14, &strip ),
-    new Job( jenkins, 8080, "/job/earth-mage_ALL_UnitTests/api/json", 15, 29, &strip )
+    new Job( jenkins, 8080, "/job/earth-mage_ALL_Build/api/json",  0, 27, &strip ),
+    new Job( jenkins, 8080, "/job/earth-mage_ALL_UnitTests/api/json", 28, NUM_PIXELS-1, &strip )
   };
 */
 
@@ -167,12 +167,12 @@ void setup() {
   strip.show(); // Initialize all pixels to 'off'
 
   // start the Ethernet connection:
-  if (Ethernet.begin(mac) == 0) {
-    Serial.println("Failed to configure Ethernet using DHCP");
-    Serial.print("Try now to connect with IP ");
-    Serial.println(ip);
+//  if (Ethernet.begin(mac) == 0) {
+//    Serial.println("Failed to configure Ethernet using DHCP");
+//    Serial.print("Try now to connect with IP ");
+//    Serial.println(ip);
     Ethernet.begin(mac, ip);
-  }
+//  }
   Serial.print("IP: ");
   Serial.println(Ethernet.localIP());
 
