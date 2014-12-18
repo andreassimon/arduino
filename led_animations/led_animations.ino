@@ -1,7 +1,7 @@
 #include <Adafruit_NeoPixel.h>
 
 #define PIN 6
-#define NUM_PIXELS 40
+#define NUM_PIXELS 58
 
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_PIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
@@ -9,21 +9,19 @@ const uint32_t BLACK = strip.Color(0, 0, 0);
 const uint32_t RED = strip.Color(128, 0, 0);
 
 #include "lib/Animations/Blink.cpp"
-#include "lib/Animations/Pulsating.cpp"
+#include "lib/Animations/PulsatingRed.cpp"
 #include "lib/Animations/Fireworks.cpp"
 #include "lib/Animations/KnightRider.cpp"
 
-Animations::Blink blink1 = Animations::Blink(&strip, 35, 36, RED, BLACK);
-Animations::Blink blink2 = Animations::Blink(&strip, 38, 39, RED, BLACK);
+Animations::Blink blink = Animations::Blink(&strip,  1-1, 15-1, RED, BLACK);
 
-Animations::Pulsating pulsating = Animations::Pulsating(&strip, 28, 32, 100, 200);
+Animations::PulsatingRed pulsating = Animations::PulsatingRed(&strip, 17-1, 17+14-1, 100, 200);
 
-Animations::Fireworks fireworks = Animations::Fireworks(&strip, 21, 25);
-Animations::KnightRider knightRider = Animations::KnightRider(&strip, 7, 17);
+Animations::Fireworks fireworks = Animations::Fireworks(&strip, 17+14+1-1, 17+14+1+14-1);
+Animations::KnightRider knightRider = Animations::KnightRider(&strip, 17+14+1+14+1-1, 17+14+1+14+1+14-1, 0xc00000, 0x3c0000);
 
 Animations::Animation* animations[] = {
-  &blink1,
-  &blink2,
+  &blink,
   &pulsating,
   &fireworks,
   &knightRider
@@ -38,11 +36,16 @@ void setup() {
 
   Serial.println("Hello world!");
   strip.begin();
-  strip.show(); // Initialize all pixels to 'off'
+
+  for(int i=0; i<NUM_PIXELS; i++) {
+    strip.setPixelColor(i, 0u);
+  }
+  strip.show();
+  delay(250);
 }
 
 void loop() {
-  for(int i = 0; i<5; i++) {
+  for(int i = 0; i<4; i++) {
     (*animations[i]).update();
   }
 
