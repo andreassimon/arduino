@@ -134,14 +134,14 @@ void GET(const char *host, const int port, const char *uri) {
     Serial.println();
 #endif
 
-    client.print("GET ");
+    client.print(F("GET "));
     client.print(uri);
-    client.print(" HTTP/1.0\nHost: ");
+    client.print(F(" HTTP/1.1\nHost: "));
     client.print(host);
-    client.print("\nUser-Agent: Arduino Build Monitor\nConnection: close\n\n");
+    client.print(F("\nUser-Agent: Arduino Build Monitor\nConnection: close\n\n"));
   } else {
 #ifdef DEBUG
-    Serial.print("HTTP connection failed: ");
+    Serial.print(F("HTTP connection failed: "));
     Serial.println(connStatus);
 #endif
   }
@@ -173,7 +173,7 @@ void setup() {
 //    Serial.println(ip);
     Ethernet.begin(mac, ip);
 //  }
-  Serial.print("IP: ");
+  Serial.print(F("IP: "));
   Serial.println(Ethernet.localIP());
 
   parser = JenkinsJobParser();
