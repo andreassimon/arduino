@@ -2,10 +2,12 @@
 #include <JenkinsJobParser.h>
 #include <Adafruit_NeoPixel.h>
 #include "lib/Animations/Constant.cpp"
-#include "lib/Animations/Blink.cpp"
-#include "lib/Animations/KnightRider.cpp"
-#include "lib/Animations/PulsatingGreen.cpp"
-#include "lib/Animations/PulsatingRed.cpp"
+// #include "lib/Animations/Blink.cpp"
+// #include "lib/Animations/KnightRider.cpp"
+// #include "lib/Animations/PulsatingGreen.cpp"
+// #include "lib/Animations/PulsatingRed.cpp"
+#include "lib/Animations/Fireworks.cpp"
+#include "lib/Animations/FireworksGreen.cpp"
 
 
 // #define DEBUG
@@ -35,11 +37,13 @@ class Job {
     (*this).lastPixel = lastPixel;
     (*this).strip = strip;
     (*this).green = new Animations::Constant(strip, firstPixel, lastPixel, 0x003200);
+    (*this).greenAnimated = new Animations::FireworksGreen(strip, firstPixel, lastPixel);
     // (*this).greenAnimated = new Animations::KnightRider(strip, firstPixel, lastPixel, 0x00c000, 0x003c00);
-    (*this).greenAnimated = new Animations::PulsatingGreen(strip, firstPixel, lastPixel, 60, 200);
+    // (*this).greenAnimated = new Animations::PulsatingGreen(strip, firstPixel, lastPixel, 60, 200);
     (*this).red = new Animations::Constant(strip, firstPixel, lastPixel, 0x800000);
+    (*this).redAnimated = new Animations::Fireworks(strip, firstPixel, lastPixel);
     // (*this).redAnimated = new Animations::KnightRider(strip, firstPixel, lastPixel, 0xc00000, 0x3c0000);
-    (*this).redAnimated = new Animations::PulsatingRed(strip, firstPixel, lastPixel, 60, 200);
+    // (*this).redAnimated = new Animations::PulsatingRed(strip, firstPixel, lastPixel, 60, 200);
     (*this).unknown = new Animations::Constant(strip, firstPixel, lastPixel, 0x202020);
     (*this).animation = unknown;
   }
